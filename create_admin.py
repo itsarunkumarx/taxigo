@@ -7,10 +7,20 @@ django.setup()
 from accounts.models import CustomUser
 
 try:
-    if not CustomUser.objects.filter(username='adminbala').exists():
-        CustomUser.objects.create_superuser('adminbala', 'admin@taxigo.com', 'bala@2003')
-        print("Superuser adminbala created successfully.")
+    user = CustomUser.objects.filter(username='adminbala').first()
+    if not user:
+        CustomUser.objects.create_superuser(
+            username='adminbala',
+            email='admin@taxigo.com',
+            password='bala@2003',
+            role='ADMIN'
+        )
+        print("Superuser adminbala created successfully with role ADMIN.")
     else:
-        print("Superuser adminbala already exists.")
+        user.role = 'ADMIN'
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        print("Superuser adminbala verified and updated to role ADMIN.")
 except Exception as e:
-    print(f"Error creating superuser: {e}")
+    print(f"Error creating/updating superuser: {e}")
