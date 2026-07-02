@@ -235,7 +235,7 @@ transform:translateY(0);
 }
 
 .footer-text{
-    color:#222;
+    color:#d1d5db;
     line-height:28px;
 }
 
@@ -255,7 +255,7 @@ transform:translateY(0);
 
 .footer-links a{
     text-decoration:none;
-    color:black;
+    color:#d1d5db;
     transition:.3s;
 }
 
@@ -295,7 +295,7 @@ transform:translateY(0);
 }
 
 .copyright{
-    color:#222;
+    color:#9ca3af;
     margin:0;
 }
 
