@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends 'admin/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>My Rides</h2>
+
+<table class="table table-bordered">
+
+<thead class="table-dark">
+
+<tr>
+
+<th>ID</th>
+<th>Customer</th>
+<th>Pickup</th>
+<th>Drop</th>
+<th>Status</th>
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for booking in bookings %}
+
+<tr>
+
+<td>{{ booking.id }}</td>
+<td>{{ booking.customer }}</td>
+<td>{{ booking.pickup_location }}</td>
+<td>{{ booking.drop_location }}</td>
+<td>{{ booking.status }}</td>
+
+<td>
+
+{% if booking.status == "Pending" %}
+
+<a href="{% url 'accept_ride' booking.id %}" class="btn btn-success btn-sm">
+Accept
+</a>
+
+{% elif booking.status == "Accepted" %}
+
+<a href="{% url 'start_ride' booking.id %}" class="btn btn-primary btn-sm">
+Start Ride
+</a>
+
+{% elif booking.status == "On Ride" %}
+
+<a href="{% url 'complete_ride' booking.id %}" class="btn btn-danger btn-sm">
+Complete Ride
+</a>
+
+{% else %}
+
+<span class="badge bg-success">Completed</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="6" class="text-center">
+No Rides Assigned
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}
+</body>
+</html>

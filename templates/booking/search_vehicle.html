@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <h2 class="mb-4 fw-bold">
+        Available Taxis
+    </h2>
+
+    <p>
+        <strong>Pickup:</strong> {{ pickup }}<br>
+        <strong>Drop:</strong> {{ drop }}<br>
+        <strong>Date:</strong> {{ date }}<br>
+        <strong>Time:</strong> {{ time }}
+    </p>
+
+    <div class="row">
+
+        {% for vehicle in vehicles %}
+
+        <div class="col-lg-3 col-md-6 mb-4">
+
+            <div class="card shadow h-100">
+
+                {% if vehicle.image %}
+                    <img src="{{ vehicle.image.url }}"
+                         class="card-img-top"
+                         style="height:200px;object-fit:cover;">
+                {% else %}
+                    <img src="{% static 'images/punch.avif' %}"
+                         class="card-img-top"
+                         style="height:200px;object-fit:cover;">
+                {% endif %}
+
+                <div class="card-body">
+
+                    <h5>{{ vehicle.vehicle_name }}</h5>
+
+                    <p class="mb-1">
+                        <strong>Type:</strong> {{ vehicle.get_vehicle_type_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Seats:</strong> {{ vehicle.seats }}
+                    </p>
+
+                    <p class="mb-3">
+                        <strong>₹{{ vehicle.price_per_km }}</strong> / km
+                    </p>
+
+                    <a href="{% url 'add_booking' %}?vehicle={{ vehicle.id }}&pickup={{ pickup }}&drop={{ drop }}"
+                       class="btn btn-warning w-100">
+
+                        Book Now
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="col-12">
+
+            <div class="alert alert-warning">
+                No vehicles are currently available.
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

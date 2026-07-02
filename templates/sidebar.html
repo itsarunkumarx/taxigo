@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="list-group">
+
+    <a href="{% url 'customer_dashboard' %}" class="list-group-item">
+        Dashboard
+    </a>
+
+    <a href="{% url 'add_booking' %}" class="list-group-item">
+        Book Taxi
+    </a>
+
+    <a href="{% url 'booking_list' %}" class="list-group-item">
+        My Bookings
+    </a>
+
+    <a href="{% url 'driver_list' %}" class="list-group-item">
+        Drivers
+    </a>
+
+    <a href="{% url 'vehicle_list' %}" class="list-group-item">
+        Vehicles
+    </a>
+
+</div>
+</body>
+</html>

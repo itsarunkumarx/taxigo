@@ -1,0 +1,337 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="dashboard-title mb-1">
+                <i class="bi bi-speedometer2 text-primary me-2"></i>
+                Admin Dashboard
+            </h2>
+
+            <p class="text-muted mb-0">
+                Welcome to the Rovexa Cabs Administration Panel
+            </p>
+        </div>
+
+        <div>
+
+            <a href="{% url 'home' %}" class="btn btn-primary">
+
+                <i class="bi bi-globe me-2"></i>
+
+                Visit Website
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- ================= TOP ROW ================= -->
+
+    <div class="row g-4">
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card bg-blue">
+
+                <div class="card-body">
+
+                    <div>
+
+                        <h2 class="dashboard-count">
+                            {{ customer_count }}
+                        </h2>
+
+                        <p class="dashboard-text">
+                            Customers
+                        </p>
+
+                    </div>
+
+                    <div class="dashboard-icon">
+
+                        <i class="bi bi-people-fill"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card bg-green">
+
+                <div class="card-body">
+
+                    <div>
+
+                        <h2 class="dashboard-count">
+                            {{ owner_count }}
+                        </h2>
+
+                        <p class="dashboard-text">
+                            Car Owners
+                        </p>
+
+                    </div>
+
+                    <div class="dashboard-icon">
+
+                        <i class="bi bi-person-workspace"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card bg-orange">
+
+                <div class="card-body">
+
+                    <div>
+
+                        <h2 class="dashboard-count">
+                            {{ driver_count }}
+                        </h2>
+
+                        <p class="dashboard-text">
+                            Drivers
+                        </p>
+
+                    </div>
+
+                    <div class="dashboard-icon">
+
+                        <i class="bi bi-person-badge-fill"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card bg-red">
+
+                <div class="card-body">
+
+                    <div>
+
+                        <h2 class="dashboard-count">
+                            {{ booking_count }}
+                        </h2>
+
+                        <p class="dashboard-text">
+                            Bookings
+                        </p>
+
+                    </div>
+
+                    <div class="dashboard-icon">
+
+                        <i class="bi bi-calendar-check-fill"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= SECOND ROW ================= -->
+
+    <div class="row g-4 mt-1">
+
+        <div class="col-lg-4">
+
+            <div class="card dashboard-card bg-darkblue">
+
+                <div class="card-body">
+
+                    <div>
+
+                        <h2 class="dashboard-count">
+                            {{ vehicle_count }}
+                        </h2>
+
+                        <p class="dashboard-text">
+                            Total Vehicles
+                        </p>
+
+                    </div>
+
+                    <div class="dashboard-icon">
+
+                        <i class="bi bi-car-front-fill"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card dashboard-card bg-cyan">
+
+                <div class="card-body">
+
+                    <div>
+
+                        <h2 class="dashboard-count">
+                            {{ available_vehicle }}
+                        </h2>
+
+                        <p class="dashboard-text">
+                            Available Vehicles
+                        </p>
+
+                    </div>
+
+                    <div class="dashboard-icon">
+
+                        <i class="bi bi-check-circle-fill"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card dashboard-card bg-purple">
+
+                <div class="card-body">
+
+                    <div>
+
+                        <h2 class="dashboard-count">
+                            {{ payment_count }}
+                        </h2>
+
+                        <p class="dashboard-text">
+                            Payments
+                        </p>
+
+                    </div>
+
+                    <div class="dashboard-icon">
+
+                        <i class="bi bi-credit-card-fill"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= QUICK ACTIONS ================= -->
+
+    <div class="card shadow-lg border-0 rounded-4 mt-5">
+
+        <div class="card-header bg-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+
+                Quick Actions
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4 text-center">
+
+                <div class="col-lg-3 col-md-6">
+
+                    <a href="{% url 'vehicle_list' %}"
+                       class="btn btn-primary w-100 py-4">
+
+                        <i class="bi bi-car-front-fill fs-1 d-block mb-3"></i>
+
+                        Vehicles
+
+                    </a>
+
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+
+                    <a href="{% url 'booking_list' %}"
+                       class="btn btn-success w-100 py-4">
+
+                        <i class="bi bi-calendar-check-fill fs-1 d-block mb-3"></i>
+
+                        Bookings
+
+                    </a>
+
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+
+                    <a href="{% url 'payment_list' %}"
+                       class="btn btn-warning w-100 py-4">
+
+                        <i class="bi bi-credit-card-fill fs-1 d-block mb-3"></i>
+
+                        Payments
+
+                    </a>
+
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+
+                    <a href="{% url 'home' %}"
+                       class="btn btn-danger w-100 py-4">
+
+                        <i class="bi bi-globe fs-1 d-block mb-3"></i>
+
+                        Website
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

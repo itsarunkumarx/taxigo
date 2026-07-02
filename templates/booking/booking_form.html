@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+  {% extends 'admin/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            <h3>🚖 Book Taxi</h3>
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Pickup Location
+                        </label>
+
+                        <input
+                            type="text"
+                            id="pickup"
+                            name="pickup_location"
+                            class="form-control"
+                            placeholder="Click on map"
+                            readonly>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Drop Location
+                        </label>
+
+                        <input
+                            type="text"
+                            id="drop"
+                            name="drop_location"
+                            class="form-control"
+                            placeholder="Click on map"
+                            readonly>
+
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="getCurrentLocation()">
+
+                        📍 Current Location
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-warning"
+                        onclick="resetSelection()">
+
+                        Reset Selection
+
+                    </button>
+
+                </div>
+
+                <input type="hidden" id="pickup_lat" name="pickup_lat">
+                <input type="hidden" id="pickup_lng" name="pickup_lng">
+
+                <input type="hidden" id="drop_lat" name="drop_lat">
+                <input type="hidden" id="drop_lng" name="drop_lng">
+
+                <div
+                    id="map"
+                    style="height:500px;border-radius:10px;">
+                </div>
+
+                <hr>
+
+                <button
+                    type="submit"
+                    class="btn btn-success">
+
+                    Book Now
+
+                </button>
+
+                <a
+                    href="{% url 'booking_list' %}"
+                    class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script>
+
+//////////////////////////////////////////////////////
+
+// CREATE MAP
+
+//////////////////////////////////////////////////////
+
+var map = L.map("map").setView([12.2253,79.0747],13);
+
+L.tileLayer(
+
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+
+{
+
+    maxZoom:19,
+
+    attribution:'© OpenStreetMap'
+
+}
+
+).addTo(map);
+
+//////////////////////////////////////////////////////
+
+// VARIABLES
+
+//////////////////////////////////////////////////////
+
+let pickupMarker=null;
+
+let dropMarker=null;
+
+let selectingPickup=true;
+
+//////////////////////////////////////////////////////
+
+// CURRENT LOCATION
+
+//////////////////////////////////////////////////////
+
+function getCurrentLocation(){
+
+    if(navigator.geolocation){
+
+        navigator.geolocation.getCurrentPosition(
+
+            function(position){
+
+                let lat=position.coords.latitude;
+
+                let lng=position.coords.longitude;
+
+                map.setView([lat,lng],15);
+
+                L.circle([lat,lng],{
+
+                    radius:50
+
+                }).addTo(map);
+
+            }
+
+        );
+
+    }
+
+}
+
+//////////////////////////////////////////////////////
+
+// CLICK MAP
+
+//////////////////////////////////////////////////////
+
+map.on("click",function(e){
+
+    let lat=e.latlng.lat;
+
+    let lng=e.latlng.lng;
+
+    if(selectingPickup){
+
+        if(pickupMarker){
+
+            map.removeLayer(pickupMarker);
+
+        }
+
+        pickupMarker=L.marker([lat,lng])
+
+        .addTo(map)
+
+        .bindPopup("Pickup")
+
+        .openPopup();
+
+        document.getElementById("pickup_lat").value=lat;
+
+        document.getElementById("pickup_lng").value=lng;
+
+        reverseGeocode(
+
+            lat,
+
+            lng,
+
+            "pickup"
+
+        );
+
+        selectingPickup=false;
+
+        alert("Now click Drop Location");
+
+    }
+
+    else{
+
+        if(dropMarker){
+
+            map.removeLayer(dropMarker);
+
+        }
+
+        dropMarker=L.marker([lat,lng])
+
+        .addTo(map)
+
+        .bindPopup("Drop")
+
+        .openPopup();
+
+        document.getElementById("drop_lat").value=lat;
+
+        document.getElementById("drop_lng").value=lng;
+
+        reverseGeocode(
+
+            lat,
+
+            lng,
+
+            "drop"
+
+        );
+
+        selectingPickup=true;
+
+        alert("Pickup & Drop Selected");
+
+    }
+
+});
+
+//////////////////////////////////////////////////////
+
+// REVERSE GEOCODE
+
+//////////////////////////////////////////////////////
+
+function reverseGeocode(
+
+lat,
+
+lng,
+
+field
+
+){
+
+fetch(
+
+`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+
+)
+
+.then(
+
+response=>response.json()
+
+)
+
+.then(
+
+data=>{
+
+document.getElementById(field).value=data.display_name;
+
+}
+
+);
+
+}
+
+//////////////////////////////////////////////////////
+
+// RESET
+
+//////////////////////////////////////////////////////
+
+function resetSelection(){
+
+if(pickupMarker){
+
+map.removeLayer(pickupMarker);
+
+}
+
+if(dropMarker){
+
+map.removeLayer(dropMarker);
+
+}
+
+pickupMarker=null;
+
+dropMarker=null;
+
+selectingPickup=true;
+
+document.getElementById("pickup").value="";
+
+document.getElementById("drop").value="";
+
+document.getElementById("pickup_lat").value="";
+
+document.getElementById("pickup_lng").value="";
+
+document.getElementById("drop_lat").value="";
+
+document.getElementById("drop_lng").value="";
+
+}
+
+</script>
+
+{% endblock %}
+</body>
+</html>

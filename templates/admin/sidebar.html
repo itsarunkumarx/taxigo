@@ -1,0 +1,113 @@
+{% load static %}
+
+<div class="sidebar d-flex flex-column bg-dark text-white vh-100 shadow-lg">
+
+    <!-- Logo -->
+    <div class="text-center py-4 border-bottom border-secondary">
+
+        <img src="{% static 'images/Brand.jpg' %}"
+             class="rounded-circle shadow"
+             width="80"
+             height="80"
+             alt="Rovexa Logo">
+
+        <h3 class="fw-bold text-warning mt-3 mb-0">
+            ROVEXA
+        </h3>
+
+        <small class="text-light">
+            CABS ADMIN PANEL
+        </small>
+
+    </div>
+
+    <!-- Navigation -->
+    <ul class="nav flex-column mt-4 px-2">
+
+        <li class="nav-item mb-2">
+            <a href="{% url 'admin_dashboard' %}" class="nav-link text-white rounded">
+                <i class="bi bi-speedometer2 me-3"></i>
+                Dashboard
+            </a>
+        </li>
+
+        
+
+        <li class="nav-item mb-2">
+            <a href="{% url 'driver_list' %}" class="nav-link text-white rounded">
+                <i class="bi bi-person-badge-fill me-3"></i>
+                Drivers
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="{% url 'booking_list' %}" class="nav-link text-white rounded">
+                <i class="bi bi-calendar-check-fill me-3"></i>
+                Bookings
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="{% url 'vehicle_list' %}" class="nav-link text-white rounded">
+                <i class="bi bi-car-front-fill me-3"></i>
+                Vehicles
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="{% url 'payment_list' %}" class="nav-link text-white rounded">
+                <i class="bi bi-credit-card-fill me-3"></i>
+                Payments
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="#" class="nav-link text-white rounded">
+                <i class="bi bi-bar-chart-fill me-3"></i>
+                Reports
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="{% url 'home' %}" class="nav-link text-white rounded">
+                <i class="bi bi-globe2 me-3"></i>
+                Website
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="/admin/" class="nav-link text-white rounded">
+                <i class="bi bi-gear-fill me-3"></i>
+                Django Admin
+            </a>
+        </li>
+
+    </ul>
+
+    <!-- Footer -->
+    <div class="mt-auto p-3 border-top border-secondary">
+
+        <div class="text-center mb-3">
+
+            <small class="text-secondary">
+                Logged in as
+            </small>
+
+            <div class="fw-bold">
+                {{ request.user.username }}
+            </div>
+
+        </div>
+
+        <a href="{% url 'logout' %}"
+           class="btn btn-danger w-100 rounded-pill">
+
+            <i class="bi bi-box-arrow-right me-2"></i>
+
+            Logout
+
+        </a>
+
+    </div>
+
+</div>

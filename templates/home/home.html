@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- ================= HERO ================= -->
+<section class="hero-section">
+
+    <div class="hero-overlay"></div>
+
+    <div class="container-fluid h-100">
+
+        <div class="container h-100">
+
+            <div class="row align-items-center h-100">
+
+                <!-- LEFT -->
+
+                <div class="col-lg-6 text-white">
+
+                    
+                    <h1 class="hero-title">
+
+                        Ride Anywhere,
+                        <br>
+
+                        Anytime with
+                        <br>
+
+                        <span>TAXIGO</span>
+
+                    </h1>
+
+                    <p class="hero-text">
+
+                        Fast, Safe & Affordable Taxi Service
+                        <br>
+
+                        at Your Fingertips
+
+                    </p>
+
+                    <a href="{% url 'add_booking' %}"
+                       class="btn btn-warning btn-lg px-4 me-3">
+
+                        Book Now
+
+                    </a>
+
+                    <a href="#"
+                       class="btn btn-light btn-lg px-4">
+
+                        Learn More
+
+                    </a>
+
+                </div>
+
+                <!-- RIGHT -->
+
+                <div class="col-lg-6 text-end">
+
+                    
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ================= SEARCH CARD ================= -->
+
+<div class="container">
+
+<form method="GET" action="{% url 'search_vehicle' %}">
+
+<div class="search-box shadow-lg">
+
+<div class="row g-3 align-items-end">
+
+<!-- Pickup -->
+
+<div class="col-md-3">
+
+<label class="form-label fw-bold">
+<i class="bi bi-geo-alt-fill text-warning me-2"></i>
+Pickup Location
+</label>
+
+<div class="input-group">
+
+<span class="input-group-text">
+<i class="bi bi-geo-fill text-danger"></i>
+</span>
+
+<input
+type="text"
+name="pickup"
+class="form-control"
+placeholder="Enter Pickup"
+required>
+
+</div>
+
+</div>
+
+<!-- Drop -->
+
+<div class="col-md-3">
+
+<label class="form-label fw-bold">
+<i class="bi bi-pin-map-fill text-success me-2"></i>
+Drop Location
+</label>
+
+<div class="input-group">
+
+<span class="input-group-text">
+<i class="bi bi-flag-fill text-success"></i>
+</span>
+
+<input
+type="text"
+name="drop"
+class="form-control"
+placeholder="Enter Destination"
+required>
+
+</div>
+
+</div>
+
+<!-- Date -->
+
+<div class="col-md-2">
+
+<label class="form-label fw-bold">
+<i class="bi bi-calendar-event-fill text-primary me-2"></i>
+Pickup Date
+</label>
+
+<input
+type="date"
+name="date"
+class="form-control"
+required>
+
+</div>
+
+<!-- Time -->
+
+<div class="col-md-2">
+
+<label class="form-label fw-bold">
+<i class="bi bi-clock-fill text-info me-2"></i>
+Pickup Time
+</label>
+
+<input
+type="time"
+name="time"
+class="form-control"
+required>
+
+</div>
+
+<!-- Button -->
+
+<div class="col-md-2 d-grid">
+
+<button
+type="submit"
+class="btn btn-warning btn-lg">
+
+<i class="bi bi-search me-2"></i>
+
+Search Taxi
+
+</button>
+
+</div>
+
+</div>
+
+<hr>
+
+<!-- Popular Locations -->
+
+<div>
+
+<span class="fw-bold me-2">
+
+<i class="bi bi-star-fill text-warning"></i>
+
+Popular Locations
+
+</span>
+
+<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill m-1">
+Airport
+</button>
+
+<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill m-1">
+Railway Station
+</button>
+
+<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill m-1">
+Tiruvannamalai
+</button>
+
+<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill m-1">
+Chengam
+</button>
+
+<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill m-1">
+Vellore
+</button>
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+<!-- ================= FEATURES ================= -->
+
+<section class="container py-5">
+
+<div class="row g-4">
+
+<div class="col-lg-3">
+
+<div class="feature-card">
+
+<i class="bi bi-shield-check text-warning display-5"></i>
+
+<h5>Safe & Secure</h5>
+
+<p>Your safety is our priority</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="feature-card">
+
+<i class="bi bi-person-badge text-primary display-5"></i>
+
+<h5>Verified Drivers</h5>
+
+<p>Professional Drivers</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="feature-card">
+
+<i class="bi bi-cash-coin text-success display-5"></i>
+
+<h5>Affordable Fare</h5>
+
+<p>No Hidden Charges</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="feature-card">
+
+<i class="bi bi-geo-alt text-danger display-5"></i>
+
+<h5>Live Tracking</h5>
+
+<p>Track your ride</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= STATS ================= -->
+
+<section class="container pb-5">
+
+<div class="stats-box shadow">
+
+<div class="row text-center">
+
+<div class="col">
+<h2>10K+</h2>
+<p>Customers</p>
+</div>
+
+<div class="col">
+<h2>500+</h2>
+<p>Drivers</p>
+</div>
+
+<div class="col">
+<h2>300+</h2>
+<p>Vehicles</p>
+</div>
+
+<div class="col">
+<h2>50K+</h2>
+<p>Trips</p>
+</div>
+
+<div class="col">
+<h2>4.8 ⭐</h2>
+<p>Rating</p>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+{% endblock %}

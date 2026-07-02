@@ -1,0 +1,160 @@
+{% load static %}
+
+<nav class="navbar navbar-expand-lg admin-navbar">
+
+    <div class="container-fluid">
+
+        <!-- Left -->
+
+        <div class="d-flex align-items-center">
+
+            <button class="btn btn-light me-3 d-lg-none">
+
+                <i class="bi bi-list fs-4"></i>
+
+            </button>
+
+            <h4 class="mb-0 fw-bold">
+
+                <i class="bi bi-speedometer2 text-primary me-2"></i>
+
+                Admin Dashboard
+
+            </h4>
+
+        </div>
+
+        <!-- Right -->
+
+        <div class="d-flex align-items-center">
+
+            <!-- Search -->
+
+            <form class="d-none d-md-flex me-4">
+
+                <div class="input-group">
+
+                    <span class="input-group-text bg-white border-end-0">
+
+                        <i class="bi bi-search"></i>
+
+                    </span>
+
+                    <input type="text"
+                           class="form-control border-start-0"
+                           placeholder="Search...">
+
+                </div>
+
+            </form>
+
+            <!-- Notifications -->
+
+            <button class="btn btn-light position-relative me-3">
+
+                <i class="bi bi-bell fs-5"></i>
+
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+
+                    3
+
+                </span>
+
+            </button>
+
+            <!-- Messages -->
+
+            <button class="btn btn-light position-relative me-3">
+
+                <i class="bi bi-envelope fs-5"></i>
+
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+
+                    5
+
+                </span>
+
+            </button>
+
+            <!-- Profile -->
+
+            <div class="dropdown">
+
+                <a href="#"
+                   class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                   data-bs-toggle="dropdown">
+
+                    <img src="{% static 'images/Brand.jpg' %}"
+                         width="45"
+                         height="45"
+                         class="rounded-circle border border-3 border-warning me-2"
+                         alt="Admin">
+
+                    <div class="d-none d-md-block">
+
+                        <h6 class="mb-0">
+
+                            {{ request.user.username }}
+
+                        </h6>
+
+                        <small class="text-muted">
+
+                            Administrator
+
+                        </small>
+
+                    </div>
+
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+
+                    <li>
+
+                        <a class="dropdown-item" href="#">
+
+                            <i class="bi bi-person-circle me-2"></i>
+
+                            Profile
+
+                        </a>
+
+                    </li>
+
+                    <li>
+
+                        <a class="dropdown-item" href="#">
+
+                            <i class="bi bi-gear me-2"></i>
+
+                            Settings
+
+                        </a>
+
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+
+                        <a class="dropdown-item text-danger"
+                           href="{% url 'logout' %}">
+
+                            <i class="bi bi-box-arrow-right me-2"></i>
+
+                            Logout
+
+                        </a>
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</nav>

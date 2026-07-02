@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends 'admin/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+   <div class="row mb-3">
+
+    <div class="col-md-8">
+
+        <form method="GET">
+
+            <div class="input-group">
+
+                <input
+                    type="text"
+                    name="search"
+                    class="form-control"
+                    placeholder="Search Driver..."
+                    value="{{ search }}"
+                >
+
+                <button class="btn btn-primary">
+                    Search
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="col-md-4 text-end">
+
+        <a href="{% url 'add_driver' %}" class="btn btn-success">
+            Add Driver
+        </a>
+
+    </div>
+
+</div>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Vehicle</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for driver in drivers %}
+
+        <tr>
+            <td>{{ driver.id }}</td>
+            <td>{{ driver.full_name }}</td>
+            <td>{{ driver.mobile }}</td>
+            <td>{{ driver.vehicle }}</td>
+            <td>{{ driver.status }}</td>
+
+            <td>
+                <a href="{% url 'edit_driver' driver.id %}" class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+
+                <a href="{% url 'delete_driver' driver.id %}" class="btn btn-danger btn-sm">
+                    Delete
+                </a>
+            </td>
+        </tr>
+
+        {% empty %}
+
+        <tr>
+            <td colspan="6" class="text-center">
+                No Drivers Found
+            </td>
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
+</body>
+</html>

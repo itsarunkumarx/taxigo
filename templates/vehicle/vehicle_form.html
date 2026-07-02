@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+   {% extends 'admin/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            <h4>Add Vehicle</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label>Owner</label>
+                        {{ form.owner }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Vehicle Name</label>
+                        {{ form.vehicle_name }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Brand</label>
+                        {{ form.brand }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Model</label>
+                        {{ form.model }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Vehicle Number</label>
+                        {{ form.vehicle_number }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Vehicle Type</label>
+                        {{ form.vehicle_type }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Fuel Type</label>
+                        {{ form.fuel_type }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Seats</label>
+                        {{ form.seats }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Price Per KM</label>
+                        {{ form.price_per_km }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Vehicle Image</label>
+                        {{ form.image }}
+                    </div>
+
+                    <div class="col-md-6 mb-3 mt-4">
+                        {{ form.is_available }}
+                        <label>Available</label>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <button class="btn btn-success">
+                    Save Vehicle
+                </button>
+
+                <a href="{% url 'vehicle_list' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+</body>
+</html>

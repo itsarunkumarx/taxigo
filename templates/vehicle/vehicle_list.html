@@ -1,0 +1,188 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <h2>Vehicle List</h2>
+
+        
+    </div>
+    <div class="row mb-3">
+
+    <div class="col-md-8">
+
+        <form method="GET">
+
+            <div class="input-group">
+
+                <input
+                    type="text"
+                    name="search"
+                    class="form-control"
+                    placeholder="Search Vehicle..."
+                    value="{{ search }}"
+                >
+
+                <button class="btn btn-primary">
+                    Search
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="col-md-4 text-end">
+
+        <a href="{% url 'add_vehicle' %}" class="btn btn-success">
+            Add Vehicle
+        </a>
+
+    </div>
+
+</div>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>ID</th>
+                <th>Image</th>
+                <th>Vehicle</th>
+                <th>Owner</th>
+                <th>Number</th>
+                <th>Price/KM</th>
+                <th>Status</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for vehicle in vehicles %}
+
+            <tr>
+
+                <td>{{ vehicle.id }}</td>
+
+                <td>
+
+                    {% if vehicle.image %}
+                        <img src="{{ vehicle.image.url }}" width="100" height="70">
+                    {% else %}
+                        No Image
+                    {% endif %}
+
+                </td>
+
+                <td>{{ vehicle.vehicle_name }}</td>
+
+                <td>{{ vehicle.owner }}</td>
+
+                <td>{{ vehicle.vehicle_number }}</td>
+
+                <td>₹{{ vehicle.price_per_km }}</td>
+
+                <td>
+
+                    {% if vehicle.is_available %}
+                        <span class="badge bg-success">Available</span>
+                    {% else %}
+                        <span class="badge bg-danger">Not Available</span>
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+    <a href="{% url 'edit_vehicle' vehicle.id %}"
+       class="btn btn-warning btn-sm">
+        Edit
+    </a>
+
+    <a href="{% url 'delete_vehicle' vehicle.id %}"
+       class="btn btn-danger btn-sm">
+        Delete
+    </a>
+
+</td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="8" class="text-center">
+
+                    No Vehicles Found
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <nav>
+
+<ul class="pagination">
+
+{% if vehicles.has_previous %}
+
+<li class="page-item">
+
+<a class="page-link"
+href="?page={{ vehicles.previous_page_number }}">
+
+Previous
+
+</a>
+
+</li>
+
+{% endif %}
+
+<li class="page-item active">
+
+<span class="page-link">
+
+{{ vehicles.number }}
+
+</span>
+
+</li>
+
+{% if vehicles.has_next %}
+
+<li class="page-item">
+
+<a class="page-link"
+href="?page={{ vehicles.next_page_number }}">
+
+Next
+
+</a>
+
+</li>
+
+{% endif %}
+
+</ul>
+
+</nav>
+
+</div>
+
+{% endblock %}

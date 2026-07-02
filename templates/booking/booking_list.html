@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2>Booking List</h2>
+
+        <a href="{% url 'add_booking' %}" class="btn btn-success">
+            + New Booking
+        </a>
+
+    </div>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark text-center">
+
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Vehicle</th>
+                <th>Driver</th>
+                <th>Pickup</th>
+                <th>Drop</th>
+                <th>Date</th>
+                <th>Fare</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for booking in bookings %}
+
+            <tr>
+
+                <td>{{ booking.id }}</td>
+                <td>{{ booking.customer }}</td>
+                <td>{{ booking.vehicle }}</td>
+                <td>{{ booking.driver }}</td>
+                <td>{{ booking.pickup_location }}</td>
+                <td>{{ booking.drop_location }}</td>
+                <td>{{ booking.booking_date }}</td>
+                <td>₹ {{ booking.total_fare }}</td>
+
+                <td>
+                    {% if booking.status == "Pending" %}
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+
+                    {% elif booking.status == "Accepted" %}
+                        <span class="badge bg-primary">
+                            Accepted
+                        </span>
+
+                    {% elif booking.status == "On Ride" %}
+                        <span class="badge bg-info">
+                            On Ride
+                        </span>
+
+                    {% elif booking.status == "Completed" %}
+                        <span class="badge bg-success">
+                            Completed
+                        </span>
+
+                    {% else %}
+                        <span class="badge bg-danger">
+                            Cancelled
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>
+
+                    <a href="{% url 'edit_booking' booking.id %}"
+                       class="btn btn-warning btn-sm">
+                        Edit
+                    </a>
+
+                    <a href="{% url 'delete_booking' booking.id %}"
+                       class="btn btn-danger btn-sm">
+                        Delete
+                    </a>
+
+                    {% if booking.status != "Completed" %}
+
+                        <a href="{% url 'make_payment' booking.id %}"
+                           class="btn btn-success btn-sm">
+                            Pay
+                        </a>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="10" class="text-center">
+                    No Bookings Found
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}, initial-scale=1.0">
+    
+</body>
+</html>
