@@ -95,17 +95,26 @@ ASGI_APPLICATION = "Rovexa.asgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django_mongodb_backend",
-        "NAME": "rovexa",
-        "ENFORCE_SCHEMA": False,
-        "HOST": os.environ.get(
-            "MONGODB_URI",
-            "mongodb+srv://rovexa428_db_user:rovexa%402000@rovexa.lu433ws.mongodb.net/rovexa?retryWrites=true&w=majority&appName=rovexa"
-        ),
+try:
+    import pymongo
+    DATABASES = {
+        "default": {
+            "ENGINE": "django_mongodb_backend",
+            "NAME": "taxigo",
+            "ENFORCE_SCHEMA": False,
+            "HOST": os.environ.get(
+                "MONGODB_URI",
+                "mongodb+srv://taxigo428_db_user:taxigo%402000@taxigo.lu433ws.mongodb.net/taxigo?retryWrites=true&w=majority&appName=taxigo"
+            ),
+        }
     }
-}
+except Exception:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
