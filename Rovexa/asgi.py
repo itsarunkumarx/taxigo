@@ -8,7 +8,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Taxigo.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Rovexa.settings")
 
 django_asgi_app = get_asgi_application()
 

@@ -41,9 +41,9 @@ CSRF_TRUSTED_ORIGINS = [
 INSTALLED_APPS = [
     "daphne",
     "channels",
-    "Taxigo.apps.MongoAdminConfig",
-    "Taxigo.apps.MongoAuthConfig",
-    "Taxigo.apps.MongoContentTypesConfig",
+    "Rovexa.apps.MongoAdminConfig",
+    "Rovexa.apps.MongoAuthConfig",
+    "Rovexa.apps.MongoContentTypesConfig",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
@@ -71,7 +71,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "Taxigo.urls"
+ROOT_URLCONF = "Rovexa.urls"
 
 TEMPLATES = [
     {
@@ -88,8 +88,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "Taxigo.wsgi.application"
-ASGI_APPLICATION = "Taxigo.asgi.application"
+WSGI_APPLICATION = "Rovexa.wsgi.application"
+ASGI_APPLICATION = "Rovexa.asgi.application"
 
 
 # Database
@@ -145,7 +145,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "Rovexa" / "static",
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
