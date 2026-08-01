@@ -100,7 +100,10 @@ DATABASES = {
         "ENGINE": "django_mongodb_backend",
         "NAME": "taxigo",
         "ENFORCE_SCHEMA": False,
-        "HOST": "mongodb+srv://taxigo428_db_user:taxigo%402000@taxigo.lu433ws.mongodb.net/taxigo?retryWrites=true&w=majority&appName=taxigo",
+        "HOST": os.environ.get(
+            "MONGODB_URI",
+            "mongodb+srv://taxigo428_db_user:taxigo%402000@taxigo.lu433ws.mongodb.net/taxigo?retryWrites=true&w=majority&appName=taxigo"
+        ),
     }
 }
 
