@@ -98,11 +98,11 @@ ASGI_APPLICATION = "Rovexa.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django_mongodb_backend",
-        "NAME": "rovexa",
+        "NAME": "taxigo",
         "ENFORCE_SCHEMA": False,
         "HOST": os.environ.get(
             "MONGODB_URI",
-            "mongodb+srv://rovexa428_db_user:rovexa%402000@rovexa.lu433ws.mongodb.net/rovexa?retryWrites=true&w=majority&appName=rovexa"
+            "mongodb+srv://taxigo428_db_user:taxigo%402000@taxigo.lu433ws.mongodb.net/taxigo?retryWrites=true&w=majority&appName=taxigo"
         ),
     }
 }
