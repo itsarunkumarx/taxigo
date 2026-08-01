@@ -211,7 +211,7 @@
 
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{% static 'js/taxigo-ws.js' %}"></script>
+<script src="{% static 'js/rovexa-ws.js' %}"></script>
 <script>
   let navMap, driverMarker, routePolyline;
   const pLat = {{ booking.pickup_lat|default:12.9716 }};

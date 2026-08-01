@@ -468,12 +468,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/taxigo-ws.js' %}"></script>
+<script src="{% static 'js/rovexa-ws.js' %}"></script>
 <script>
   let driverWS, currentOfferId = null, timerInterval = null;
 
   // Initialize Driver WS Handler
-  const driverHandler = new TaxigoWS.DriverRideHandler();
+  const driverHandler = new RovexaWS.DriverRideHandler();
 
   driverHandler.onRideRequest = (data) => {
     currentOfferId = data.booking_id;

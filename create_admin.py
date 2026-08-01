@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Taxigo.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Rovexa.settings')
 django.setup()
 
 from accounts.models import CustomUser
@@ -11,7 +11,7 @@ try:
     if not user:
         CustomUser.objects.create_superuser(
             username='adminbala',
-            email='admin@taxigo.com',
+            email='admin@rovexa.com',
             password='bala@2003',
             role='ADMIN'
         )

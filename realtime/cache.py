@@ -1,5 +1,5 @@
 """
-Centralized Redis helper for Taxigo real-time features with automatic in-memory fallback.
+Centralized Redis helper for Rovexa real-time features with automatic in-memory fallback.
 Prevents ConnectionError crashes when Redis is offline.
 """
 

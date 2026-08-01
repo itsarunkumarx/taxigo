@@ -1,5 +1,5 @@
 """
-WebSocket Consumers for Taxigo Real-Time Engine.
+WebSocket Consumers for Rovexa Real-Time Engine.
 
 Four consumers:
   1. LocationConsumer    — Driver sends GPS every 3s → stored in Redis → broadcast to customer

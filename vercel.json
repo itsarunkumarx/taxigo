@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "Taxigo/wsgi.py",
+      "src": "Rovexa/wsgi.py",
       "use": "@vercel/python",
       "config": { "maxDuration": 60 }
     }
@@ -14,7 +14,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "Taxigo/wsgi.py"
+      "dest": "Rovexa/wsgi.py"
     }
   ]
 }

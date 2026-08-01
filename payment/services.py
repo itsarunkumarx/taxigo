@@ -1,5 +1,5 @@
 """
-Payment Services for Taxigo — Real-Time Banking Ledger & Atomic Wallet Operations.
+Payment Services for Rovexa — Real-Time Banking Ledger & Atomic Wallet Operations.
 """
 
 import time
@@ -197,7 +197,7 @@ def create_razorpay_order(amount_rupees: float) -> dict:
     return {
         "order_id": simulated_id,
         "amount": amount_rupees,
-        "key_id": key_id or "rzp_test_taxigoKey123"
+        "key_id": key_id or "rzp_test_rovexaKey123"
     }
 
 

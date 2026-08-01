@@ -1,4 +1,4 @@
-# Taxigo — Rebuild Summary
+# Rovexa — Rebuild Summary
 
 This is your project rebuilt around a clean **3-role system**: **Admin**,
 **Partner**, **Customer**. Every bug found in the original review has been

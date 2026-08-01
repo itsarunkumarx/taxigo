@@ -15,12 +15,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='booking',
             name='payment_method',
-            field=models.CharField(choices=[('CASH', 'Cash Payment'), ('WALLET', 'Taxigo Wallet'), ('ONLINE', 'Online Payment / UPI')], default='CASH', max_length=30),
+            field=models.CharField(choices=[('CASH', 'Cash Payment'), ('WALLET', 'Rovexa Wallet'), ('ONLINE', 'Online Payment / UPI')], default='CASH', max_length=30),
         ),
         migrations.AlterField(
             model_name='booking',
             name='vehicle_type',
-            field=models.CharField(choices=[('AUTO', 'Taxigo Auto (3 Seats)'), ('MINI', 'Taxigo Mini (4 Seats)'), ('SEDAN', 'Taxigo Sedan (4 Seats)'), ('SUV', 'Taxigo SUV (6 Seats)'), ('PREMIUM', 'Taxigo Premium (4 Seats)')], default='MINI', max_length=50),
+            field=models.CharField(choices=[('AUTO', 'Rovexa Auto (3 Seats)'), ('MINI', 'Rovexa Mini (4 Seats)'), ('SEDAN', 'Rovexa Sedan (4 Seats)'), ('SUV', 'Rovexa SUV (6 Seats)'), ('PREMIUM', 'Rovexa Premium (4 Seats)')], default='MINI', max_length=50),
         ),
         migrations.CreateModel(
             name='RideChatMessage',

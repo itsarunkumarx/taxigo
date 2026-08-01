@@ -116,16 +116,16 @@ class Booking(models.Model):
     coupon_code            = models.CharField(max_length=50, blank=True, default="")
 
     VEHICLE_TYPES = (
-        ("AUTO",    "Taxigo Auto (3 Seats)"),
-        ("MINI",    "Taxigo Mini (4 Seats)"),
-        ("SEDAN",   "Taxigo Sedan (4 Seats)"),
-        ("SUV",     "Taxigo SUV (6 Seats)"),
-        ("PREMIUM", "Taxigo Premium (4 Seats)"),
+        ("AUTO",    "Rovexa Auto (3 Seats)"),
+        ("MINI",    "Rovexa Mini (4 Seats)"),
+        ("SEDAN",   "Rovexa Sedan (4 Seats)"),
+        ("SUV",     "Rovexa SUV (6 Seats)"),
+        ("PREMIUM", "Rovexa Premium (4 Seats)"),
     )
 
     PAYMENT_METHODS = (
         ("CASH",   "Cash Payment"),
-        ("WALLET", "Taxigo Wallet"),
+        ("WALLET", "Rovexa Wallet"),
         ("ONLINE", "Online Payment / UPI"),
     )
 

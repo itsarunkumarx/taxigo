@@ -1,5 +1,5 @@
 """
-WebSocket URL routing for Taxigo realtime engine.
+WebSocket URL routing for Rovexa realtime engine.
 
 Consumers:
   - LocationConsumer   → ws/location/      (driver sends GPS every 3s)

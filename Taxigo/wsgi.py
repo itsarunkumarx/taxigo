@@ -1,5 +1,5 @@
 """
-WSGI config for Taxigo project.
+WSGI config for Rovexa project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

@@ -1,5 +1,5 @@
 """
-Booking service for Taxigo — handles driver search, assignment, and status transitions.
+Booking service for Rovexa — handles driver search, assignment, and status transitions.
 Called from booking views and WebSocket consumers.
 """
 

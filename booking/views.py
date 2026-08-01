@@ -456,12 +456,12 @@ def api_create_booking(request):
             if not customer_user:
                 customer_user = CustomUser.objects.create(
                     username="guest_passenger",
-                    email="guest@taxigo.com",
+                    email="guest@rovexa.com",
                     role="CUSTOMER",
                     first_name="Guest",
                     last_name="Rider"
                 )
-                customer_user.set_password("Taxigo@123")
+                customer_user.set_password("Rovexa@123")
                 customer_user.save()
         def safe_float(val, default):
             try:
@@ -758,7 +758,7 @@ def api_calculate_fare(request):
 def api_apply_coupon(request):
     """
     POST /booking/api/apply-coupon/
-    Body: {"coupon_code": "TAXIGO10", "trip_fare": 200}
+    Body: {"coupon_code": "ROVEXA10", "trip_fare": 200}
     Validates coupon and calculates discount amount.
     """
     try:
@@ -981,10 +981,10 @@ def download_calendar_ics(request, id):
 
         ics_content = f"""BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Taxigo Rovexa//Taxi Booking Calendar//EN
+PRODID:-//Rovexa Rovexa//Taxi Booking Calendar//EN
 BEGIN:VEVENT
-SUMMARY:🚖 Taxigo Ride #{booking.id} ({booking.booking_category})
-DESCRIPTION:Taxigo Cab Ride from {booking.pickup_location} to {booking.drop_location}. Vehicle: {booking.vehicle_type}. Est. Fare: ₹{booking.total_fare}
+SUMMARY:🚖 Rovexa Ride #{booking.id} ({booking.booking_category})
+DESCRIPTION:Rovexa Cab Ride from {booking.pickup_location} to {booking.drop_location}. Vehicle: {booking.vehicle_type}. Est. Fare: ₹{booking.total_fare}
 LOCATION:{booking.pickup_location}
 DTSTART:{dt_start}
 DTEND:{dt_end}
@@ -993,7 +993,7 @@ END:VEVENT
 END:VCALENDAR"""
 
         response = HttpResponse(ics_content.strip(), content_type="text/calendar")
-        response["Content-Disposition"] = f'attachment; filename="taxigo_ride_{booking.id}.ics"'
+        response["Content-Disposition"] = f'attachment; filename="rovexa_ride_{booking.id}.ics"'
         return response
     except Exception as e:
         messages.error(request, "Unable to generate calendar invite.")
@@ -1062,7 +1062,7 @@ def api_nearby_drivers(request):
             lng_offset = (random.random() - 0.5) * 0.02
             results.append({
                 "id": str(d.id),
-                "name": d.full_name or "Taxigo Driver",
+                "name": d.full_name or "Rovexa Driver",
                 "lat": base_lat + lat_offset,
                 "lng": base_lng + lng_offset,
                 "rating": float(getattr(d, "rating_score", 4.9) or 4.9),
@@ -1133,10 +1133,10 @@ def api_booking_status(request, booking_id):
         driver_info = {}
         if booking.driver:
             driver_info = {
-                "name": booking.driver.full_name or "Taxigo Driver",
+                "name": booking.driver.full_name or "Rovexa Driver",
                 "phone": booking.driver.mobile or "+919876543210",
                 "rating": float(getattr(booking.driver, "rating_score", 4.9) or 4.9),
-                "vehicle": str(booking.vehicle.name) if booking.vehicle else "Taxigo Cab"
+                "vehicle": str(booking.vehicle.name) if booking.vehicle else "Rovexa Cab"
             }
         return JsonResponse({
             "success": True,

@@ -69,14 +69,14 @@ def admin_partner_requests(request):
                     role       = "PARTNER",
                     is_active  = True,
                 )
-            user.set_password("Taxigo@123")
+            user.set_password("Rovexa@123")
             user.role = "PARTNER"
             user.is_active = True
             user.save()
 
             pr.status = "APPROVED"
             pr.save()
-            messages.success(request, f"🎉 Partner account approved for {pr.full_name}! Login Email: {pr.email} | Password: Taxigo@123")
+            messages.success(request, f"🎉 Partner account approved for {pr.full_name}! Login Email: {pr.email} | Password: Rovexa@123")
 
         elif action == "REJECT":
             pr.status = "REJECTED"
@@ -122,7 +122,7 @@ def admin_driver_requests(request):
                     role       = "DRIVER",
                     is_active  = True,
                 )
-            user.set_password("Taxigo@123")
+            user.set_password("Rovexa@123")
             user.role = "DRIVER"
             user.is_active = True
             user.save()
@@ -151,7 +151,7 @@ def admin_driver_requests(request):
 
             dr.status = "APPROVED"
             dr.save()
-            messages.success(request, f"🎉 Driver account approved for {dr.full_name}! Login Email: {dr.email} | Default Password: Taxigo@123")
+            messages.success(request, f"🎉 Driver account approved for {dr.full_name}! Login Email: {dr.email} | Default Password: Rovexa@123")
 
         elif action == "REJECT":
             dr.status = "REJECTED"

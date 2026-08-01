@@ -69,12 +69,12 @@
         <i class="bi bi-check-circle-fill text-warning fs-5 option-check"></i>
       </div>
 
-      <!-- Option 2: Taxigo Wallet -->
+      <!-- Option 2: Rovexa Wallet -->
       <div class="pay-option-card" onclick="selectMethod('Wallet', this)">
         <div class="d-flex align-items-center gap-3">
           <div class="fs-2">👛</div>
           <div>
-            <strong class="text-white d-block">Taxigo Wallet</strong>
+            <strong class="text-white d-block">Rovexa Wallet</strong>
             <span class="text-muted small">Available Balance: <strong class="text-warning">₹{{ wallet.balance|floatformat:2 }}</strong></span>
           </div>
         </div>
@@ -110,7 +110,7 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   let currentMethod = "Cash";
-  const razorpayKeyId = "{{ RAZORPAY_KEY_ID|default:'rzp_test_taxigoKey123' }}";
+  const razorpayKeyId = "{{ RAZORPAY_KEY_ID|default:'rzp_test_rovexaKey123' }}";
 
   function selectMethod(method, el) {
     document.querySelectorAll(".pay-option-card").forEach(card => {
@@ -137,12 +137,12 @@
       .then(r => r.json())
       .then(data => {
         if (data.success && typeof Razorpay !== "undefined") {
-          const keyToUse = razorpayKeyId && !razorpayKeyId.includes("test_taxigoKey123") ? razorpayKeyId : "rzp_test_1DP5mmOlF5G5ag";
+          const keyToUse = razorpayKeyId && !razorpayKeyId.includes("test_rovexaKey123") ? razorpayKeyId : "rzp_test_1DP5mmOlF5G5ag";
           const options = {
             "key": keyToUse,
             "amount": Math.round(amt * 100),
             "currency": "INR",
-            "name": "Taxigo Ride Payment",
+            "name": "Rovexa Ride Payment",
             "description": "Booking #{{ booking.id }}",
             "handler": function (response) {
               document.getElementById("selected_method").value = "Razorpay";
@@ -150,7 +150,7 @@
             },
             "prefill": {
               "name": "{{ request.user.display_name|escapejs }}",
-              "email": "{{ request.user.email|default:'customer@taxigo.com'|escapejs }}",
+              "email": "{{ request.user.email|default:'customer@rovexa.com'|escapejs }}",
               "contact": "{{ request.user.phone|default:'9876543210'|escapejs }}"
             },
             "theme": { "color": "#f59e0b" }

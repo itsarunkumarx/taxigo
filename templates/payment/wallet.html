@@ -1,7 +1,7 @@
 {% extends 'dashboard_base.html' %}
 {% load static %}
 
-{% block title %}Banking Passbook & Taxigo Wallet{% endblock %}
+{% block title %}Banking Passbook & Rovexa Wallet{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -222,7 +222,7 @@
     <div class="modal-content rounded-4 border-0" style="background:#1e293b; color:white;">
       <div class="modal-header border-secondary rounded-top-4">
         <div>
-          <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-check text-warning me-2"></i>Taxigo Payment Gateway</h5>
+          <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-check text-warning me-2"></i>Rovexa Payment Gateway</h5>
           <span class="text-muted small">Secured with 256-bit SSL Banking Encryption</span>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -253,7 +253,7 @@
           <div class="row align-items-center">
             <div class="col-md-5 text-center border-end border-secondary py-2">
               <img id="dynamic_upi_qr_img"
-                   src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=9487351101@paytm&pn=Taxigo%20Cabs&am=500&cu=INR"
+                   src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=9487351101@paytm&pn=Rovexa%20Cabs&am=500&cu=INR"
                    alt="UPI QR Code" class="img-fluid rounded-3 p-2 bg-white mb-2 shadow" style="max-width:180px;">
               <div class="text-muted x-small" id="qr_vpa_subtitle">Scan QR with Google Pay / PhonePe / Paytm</div>
             </div>
@@ -467,7 +467,7 @@
     const sub = document.getElementById("qr_vpa_subtitle");
 
     if (qrImg) {
-      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${encodeURIComponent(vpa)}&pn=Taxigo%20Cabs&am=${amt}&cu=INR`;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${encodeURIComponent(vpa)}&pn=Rovexa%20Cabs&am=${amt}&cu=INR`;
     }
     if (sub) {
       sub.innerHTML = `Scanning will pay <strong class="text-warning">₹${amt}</strong> to <strong class="text-white">${vpa}</strong>`;
@@ -484,12 +484,12 @@
   function launchUpiApp(app) {
     const vpa = document.getElementById("upi_vpa_input").value;
     const amt = currentPayAmount || 500;
-    const upiUri = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=Taxigo&am=${amt}&cu=INR`;
+    const upiUri = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=Rovexa&am=${amt}&cu=INR`;
 
     if (app === 'gpay') {
-      window.location.href = `intent://pay?pa=${encodeURIComponent(vpa)}&pn=Taxigo&am=${amt}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+      window.location.href = `intent://pay?pa=${encodeURIComponent(vpa)}&pn=Rovexa&am=${amt}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
     } else if (app === 'phonepe') {
-      window.location.href = `intent://pay?pa=${encodeURIComponent(vpa)}&pn=Taxigo&am=${amt}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`;
+      window.location.href = `intent://pay?pa=${encodeURIComponent(vpa)}&pn=Rovexa&am=${amt}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`;
     } else {
       window.location.href = upiUri;
     }

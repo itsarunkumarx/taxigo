@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Tracking Ride #{{ booking.id }} — Taxigo Live Radar{% endblock %}
+{% block title %}Tracking Ride #{{ booking.id }} — Rovexa Live Radar{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -391,7 +391,7 @@
           <div>
             <h5 id="driver-name" class="mb-1 fw-bold text-white">{{ booking.driver.full_name|default:"Driver Assigned" }}</h5>
             <div class="txt-muted small">
-              <span id="driver-vehicle" class="me-2 text-warning fw-bold">{{ booking.vehicle.name|default:"Taxigo Cab" }}</span>
+              <span id="driver-vehicle" class="me-2 text-warning fw-bold">{{ booking.vehicle.name|default:"Rovexa Cab" }}</span>
               <span id="driver-rating" class="badge bg-dark border border-warning text-warning">⭐ {{ booking.driver.rating_score|default:"4.9" }}</span>
             </div>
           </div>
@@ -447,7 +447,7 @@
         </div>
         <div style="font-size:60px;" class="my-2">🛣️</div>
         <h5 class="text-white fw-bold mt-2">Trip in Progress</h5>
-        <p class="txt-muted small">Driver: <strong class="text-warning">{{ booking.driver.full_name|default:"Taxigo Driver" }}</strong> | Vehicle: <strong class="text-white">{{ booking.vehicle.name|default:"Taxigo Cab" }}</strong></p>
+        <p class="txt-muted small">Driver: <strong class="text-warning">{{ booking.driver.full_name|default:"Rovexa Driver" }}</strong> | Vehicle: <strong class="text-white">{{ booking.vehicle.name|default:"Rovexa Cab" }}</strong></p>
 
         <div class="row g-2 mt-3">
           <div class="col-6">
@@ -468,7 +468,7 @@
       <!-- Panel D: Trip Completed Card -->
       <div id="panel-done" class="glass-card text-center" style="{% if booking.status == 'TRIP_COMPLETED' or booking.status == 'Completed' %}display:block;{% else %}display:none;{% endif %}">
         <div class="alert alert-success border-0 rounded-4 p-3 mb-3" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
-          <h5 class="fw-bold mb-1">🎉 Thank You for Riding with Taxigo!</h5>
+          <h5 class="fw-bold mb-1">🎉 Thank You for Riding with Rovexa!</h5>
           <p class="small mb-0 opacity-90">Your trip has been completed successfully.</p>
         </div>
 
@@ -497,7 +497,7 @@
           </div>
         </div>
 
-        <h6 class="text-white fw-bold mb-2">⭐ How was your driver, {{ booking.driver.full_name|default:"Taxigo Driver" }}?</h6>
+        <h6 class="text-white fw-bold mb-2">⭐ How was your driver, {{ booking.driver.full_name|default:"Rovexa Driver" }}?</h6>
         <p class="txt-muted small mb-3">Rate your experience to help us maintain top service quality</p>
         
         <div class="d-flex justify-content-center gap-2 mb-3" id="star-rating">
@@ -523,9 +523,9 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/taxigo-ws.js' %}"></script>
+<script src="{% static 'js/rovexa-ws.js' %}"></script>
 <script>
-  const tracker = new TaxigoWS.BookingTracker("{{ booking.id }}");
+  const tracker = new RovexaWS.BookingTracker("{{ booking.id }}");
   let map, driverMarker, pickupMarker, dropMarker;
 
   function initMap() {

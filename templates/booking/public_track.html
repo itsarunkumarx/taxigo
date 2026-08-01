@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Public Live Ride Tracking — Taxigo</title>
+  <title>Public Live Ride Tracking — Rovexa</title>
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -47,7 +47,7 @@
       <!-- Header -->
       <div class="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary pb-3">
         <div>
-          <h4 class="fw-bold text-white mb-1"><i class="bi bi-taxi-front-fill text-warning me-2"></i>Taxigo Live Tracking</h4>
+          <h4 class="fw-bold text-white mb-1"><i class="bi bi-taxi-front-fill text-warning me-2"></i>Rovexa Live Tracking</h4>
           <span class="text-muted small">Public Shared Trip • Booking #{{ booking.id }}</span>
         </div>
         <span class="badge-live"><i class="bi bi-broadcast me-1"></i> LIVE RIDE STREAM</span>
@@ -78,7 +78,7 @@
           <div class="p-3 rounded-4" style="background:#0f172a; border:1px solid #334155;">
             <span class="text-muted x-small d-block text-uppercase fw-bold mb-1">ASSIGNED DRIVER & CAB</span>
             <strong class="text-warning fs-5">{{ booking.driver.full_name|default:"Driver Assigned" }}</strong>
-            <div class="text-muted small mt-1">Reg No: <strong>{{ booking.vehicle.registration_number|default:"Taxigo Cab" }}</strong></div>
+            <div class="text-muted small mt-1">Reg No: <strong>{{ booking.vehicle.registration_number|default:"Rovexa Cab" }}</strong></div>
           </div>
         </div>
       </div>
@@ -99,7 +99,7 @@
       </div>
 
       <div class="text-center">
-        <span class="text-muted small">Powered by <strong>Taxigo Real-Time Navigation System</strong></span>
+        <span class="text-muted small">Powered by <strong>Rovexa Real-Time Navigation System</strong></span>
       </div>
 
       {% endif %}

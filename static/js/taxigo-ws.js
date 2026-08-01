@@ -1,19 +1,19 @@
 /**
- * Taxigo Real-Time WebSocket Client
+ * Rovexa Real-Time WebSocket Client
  * Sprint 1 — Location, Booking, Driver consumers
  *
  * Usage (Customer):
- *   const tracker = new TaxigoBookingTracker("booking_id_here");
+ *   const tracker = new RovexaBookingTracker("booking_id_here");
  *   tracker.onStatusChange = (status, data) => { ... };
  *   tracker.onDriverLocation = (lat, lng, heading) => { ... };
  *
  * Usage (Driver):
- *   const driver = new TaxigoDriverWS();
+ *   const driver = new RovexaDriverWS();
  *   driver.onRideRequest = (data) => { ... };
  *   driver.startLocationStream(); // GPS every 3s
  */
 
-const TaxigoWS = (() => {
+const RovexaWS = (() => {
 
   const WS_BASE = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`;
 
@@ -69,9 +69,9 @@ const TaxigoWS = (() => {
       const url = `${WS_BASE}/ws/booking/${bookingId}/`;
 
       this._ws = new AutoReconnectWS(url, {
-        onOpen:    () => console.log(`[Taxigo] Booking WS connected: ${bookingId}`),
+        onOpen:    () => console.log(`[Rovexa] Booking WS connected: ${bookingId}`),
         onMessage: (data) => this._handle(data),
-        onClose:   () => console.log(`[Taxigo] Booking WS disconnected`),
+        onClose:   () => console.log(`[Rovexa] Booking WS disconnected`),
       });
     }
 
@@ -99,7 +99,7 @@ const TaxigoWS = (() => {
           break;
 
         case "trip_completed":
-          this._showToast("✅ Trip completed! Thank you for riding with Taxigo.", "success");
+          this._showToast("✅ Trip completed! Thank you for riding with Rovexa.", "success");
           if (typeof this.onStatusChange === "function") {
             this.onStatusChange("TRIP_COMPLETED", data);
           }
@@ -146,8 +146,8 @@ const TaxigoWS = (() => {
     }
 
     _showToast(message, type = "info") {
-      if (!window.showTaxigoToast) return;
-      window.showTaxigoToast(message, type);
+      if (!window.showRovexaToast) return;
+      window.showRovexaToast(message, type);
     }
 
     close() { this._ws.close(); }
@@ -164,7 +164,7 @@ const TaxigoWS = (() => {
 
       const url = `${WS_BASE}/ws/location/`;
       this._ws = new AutoReconnectWS(url, {
-        onOpen:    () => console.log("[Taxigo Driver] Location WS connected"),
+        onOpen:    () => console.log("[Rovexa Driver] Location WS connected"),
         onMessage: (data) => this._handle(data),
       });
     }
@@ -177,7 +177,7 @@ const TaxigoWS = (() => {
 
     startGPSStream() {
       if (!navigator.geolocation) {
-        console.error("[Taxigo] Geolocation not supported.");
+        console.error("[Rovexa] Geolocation not supported.");
         return;
       }
       this._gpsInterval = setInterval(() => {
@@ -191,7 +191,7 @@ const TaxigoWS = (() => {
               speed:   pos.coords.speed   || 0,
             });
           },
-          (err) => console.warn("[Taxigo GPS]", err.message),
+          (err) => console.warn("[Rovexa GPS]", err.message),
           { enableHighAccuracy: true, timeout: 5000 }
         );
       }, 3000);  // every 3 seconds
@@ -234,7 +234,7 @@ const TaxigoWS = (() => {
 
       const url = `${WS_BASE}/ws/driver/`;
       this._ws = new AutoReconnectWS(url, {
-        onOpen:    () => console.log("[Taxigo Driver] Ride request WS connected"),
+        onOpen:    () => console.log("[Rovexa Driver] Ride request WS connected"),
         onMessage: (data) => this._handle(data),
       });
     }
@@ -290,10 +290,10 @@ const TaxigoWS = (() => {
 
 
   // ─── 4. Toast notification utility ─────────────────────────────────────────
-  window.showTaxigoToast = function(message, type = "info") {
-    const container = document.getElementById("taxigo-toast-container") || (() => {
+  window.showRovexaToast = function(message, type = "info") {
+    const container = document.getElementById("rovexa-toast-container") || (() => {
       const div = document.createElement("div");
-      div.id = "taxigo-toast-container";
+      div.id = "rovexa-toast-container";
       div.style.cssText = "position:fixed;top:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;";
       document.body.appendChild(div);
       return div;

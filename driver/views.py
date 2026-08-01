@@ -203,7 +203,7 @@ def accept_ride(request, booking_id):
                     "driver_name": driver.full_name if driver else request.user.username,
                     "driver_phone": driver.mobile if driver else getattr(request.user, "phone", ""),
                     "driver_rating": float(getattr(driver, "rating_score", 4.9)) if driver else 4.9,
-                    "vehicle": str(booking.vehicle) if booking.vehicle else "Taxigo Cab",
+                    "vehicle": str(booking.vehicle) if booking.vehicle else "Rovexa Cab",
                     "otp": booking.otp
                 })
             except Exception:

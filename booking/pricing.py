@@ -1,5 +1,5 @@
 """
-Dynamic Pricing Engine for Taxigo.
+Dynamic Pricing Engine for Rovexa.
 
 Calculates fare based on:
   - Base Fare
@@ -27,7 +27,7 @@ def get_real_road_distance(lat1, lon1, lat2, lon2) -> float:
         return 5.0
     try:
         url = f"https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
-        req = urllib.request.Request(url, headers={'User-Agent': 'TaxigoApp/1.0'})
+        req = urllib.request.Request(url, headers={'User-Agent': 'RovexaApp/1.0'})
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read().decode())
             if data.get("routes") and len(data["routes"]) > 0:
@@ -47,11 +47,11 @@ def get_real_road_distance(lat1, lon1, lat2, lon2) -> float:
         return 5.0
 
 DEFAULT_RULES = {
-    "AUTO":    {"display_name": "Taxigo Auto",    "base_fare": 30, "rate_per_km": 12, "rate_per_min": 1.5, "night_pct": 20, "airport": 50, "surge": 1.0},
-    "MINI":    {"display_name": "Taxigo Mini",    "base_fare": 40, "rate_per_km": 15, "rate_per_min": 2.0, "night_pct": 20, "airport": 50, "surge": 1.0},
-    "SEDAN":   {"display_name": "Taxigo Sedan",   "base_fare": 50, "rate_per_km": 18, "rate_per_min": 2.5, "night_pct": 20, "airport": 50, "surge": 1.0},
-    "SUV":     {"display_name": "Taxigo SUV",     "base_fare": 80, "rate_per_km": 25, "rate_per_min": 3.5, "night_pct": 20, "airport": 50, "surge": 1.0},
-    "PREMIUM": {"display_name": "Taxigo Premium", "base_fare": 120, "rate_per_km": 35, "rate_per_min": 5.0, "night_pct": 20, "airport": 50, "surge": 1.0},
+    "AUTO":    {"display_name": "Rovexa Auto",    "base_fare": 30, "rate_per_km": 12, "rate_per_min": 1.5, "night_pct": 20, "airport": 50, "surge": 1.0},
+    "MINI":    {"display_name": "Rovexa Mini",    "base_fare": 40, "rate_per_km": 15, "rate_per_min": 2.0, "night_pct": 20, "airport": 50, "surge": 1.0},
+    "SEDAN":   {"display_name": "Rovexa Sedan",   "base_fare": 50, "rate_per_km": 18, "rate_per_min": 2.5, "night_pct": 20, "airport": 50, "surge": 1.0},
+    "SUV":     {"display_name": "Rovexa SUV",     "base_fare": 80, "rate_per_km": 25, "rate_per_min": 3.5, "night_pct": 20, "airport": 50, "surge": 1.0},
+    "PREMIUM": {"display_name": "Rovexa Premium", "base_fare": 120, "rate_per_km": 35, "rate_per_min": 5.0, "night_pct": 20, "airport": 50, "surge": 1.0},
 }
 
 
@@ -128,7 +128,7 @@ def calculate_trip_fare(
     outstation_type: str = "ONE_WAY",
 ) -> dict:
     """
-    Calculates detailed fare breakdown according to Taxigo dynamic pricing formula.
+    Calculates detailed fare breakdown according to Rovexa dynamic pricing formula.
     Supports DAILY_RIDE, SCHEDULED, RENTAL, and OUTSTATION categories.
     """
     rule = get_pricing_rule(vehicle_type)

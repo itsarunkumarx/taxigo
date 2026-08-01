@@ -72,7 +72,7 @@ def make_payment(request, booking_id):
         "form": form,
         "booking": booking,
         "wallet": wallet,
-        "RAZORPAY_KEY_ID": getattr(settings, "RAZORPAY_KEY_ID", "rzp_test_taxigoKey123"),
+        "RAZORPAY_KEY_ID": getattr(settings, "RAZORPAY_KEY_ID", "rzp_test_rovexaKey123"),
     })
 
 
@@ -88,14 +88,14 @@ def wallet_view(request):
     return render(request, "payment/wallet.html", {
         "wallet": wallet,
         "transactions": transactions,
-        "RAZORPAY_KEY_ID": os.environ.get("RAZORPAY_KEY_ID", "rzp_test_taxigoKey123"),
+        "RAZORPAY_KEY_ID": os.environ.get("RAZORPAY_KEY_ID", "rzp_test_rovexaKey123"),
     })
 
 
 @login_required
 def booking_invoice(request, id):
     """
-    Printable & Downloadable Taxigo Ride Receipt / Invoice.
+    Printable & Downloadable Rovexa Ride Receipt / Invoice.
     """
     try:
         booking = Booking.objects.get(id=id)
@@ -145,7 +145,7 @@ def api_topup_wallet(request):
         wallet = get_or_create_wallet(request.user)
         return JsonResponse({
             "success": True,
-            "message": f"Successfully added ₹{amount:.2f} to your Taxigo Wallet!",
+            "message": f"Successfully added ₹{amount:.2f} to your Rovexa Wallet!",
             "new_balance": float(wallet.balance),
         })
 

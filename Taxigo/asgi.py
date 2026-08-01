@@ -1,5 +1,5 @@
 """
-ASGI config for Taxigo project — Django Channels enabled.
+ASGI config for Rovexa project — Django Channels enabled.
 """
 
 import os
