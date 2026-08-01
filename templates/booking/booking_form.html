@@ -1,0 +1,486 @@
+{% extends 'dashboard_base.html' %}
+
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            <h3>🚖 Book Taxi</h3>
+        </div>
+
+        <div class="card-body">
+
+            {% if form.errors %}
+                <div class="alert alert-danger rounded-3 mb-3">
+                    <strong>Please check form inputs:</strong> {{ form.errors }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <!-- Clean Styled Booking Options -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold"><i class="bi bi-tag-fill text-primary me-1"></i>Booking Category</label>
+                        {{ form.booking_category }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold"><i class="bi bi-car-front-fill text-warning me-1"></i>Vehicle Type</label>
+                        {{ form.vehicle_type }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold"><i class="bi bi-credit-card-fill text-success me-1"></i>Payment Method</label>
+                        {{ form.payment_method }}
+                    </div>
+                </div>
+
+                <!-- Optional Passenger Phone, Schedule & Driver Notes -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-secondary"><i class="bi bi-telephone-fill me-1"></i>Passenger Mobile (Optional)</label>
+                        <input type="text" name="passenger_phone" class="form-control" placeholder="Pre-filled with your phone" value="{{ request.user.phone|default:'' }}">
+                    </div>
+                    <div class="col-md-4" id="sched_datetime_col">
+                        <label class="form-label fw-semibold text-secondary"><i class="bi bi-calendar-event-fill me-1"></i>Scheduled Pickup Date & Time</label>
+                        <input type="datetime-local" id="scheduled_datetime" name="scheduled_datetime" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-secondary"><i class="bi bi-chat-left-text-fill me-1"></i>Notes for Driver (Optional)</label>
+                        <input type="text" name="driver_notes" class="form-control" placeholder="e.g. AC cab, carrying 2 suitcases">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6 position-relative">
+
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-geo-alt-fill text-danger me-2"></i>Pickup Location
+                        </label>
+
+                        <input
+                            type="text"
+                            id="pickup"
+                            name="pickup_location"
+                            class="form-control"
+                            placeholder="Type to search or click on map"
+                            required
+                            autocomplete="off"
+                            value="{{ pickup }}">
+
+                        <div class="autocomplete-suggestions" id="pickup_suggestions" style="display: none;"></div>
+
+                    </div>
+
+                    <div class="col-md-6 position-relative">
+
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-flag-fill text-success me-2"></i>Drop Location
+                        </label>
+
+                        <input
+                            type="text"
+                            id="drop"
+                            name="drop_location"
+                            class="form-control"
+                            placeholder="Type to search or click on map"
+                            required
+                            autocomplete="off"
+                            value="{{ drop }}">
+
+                        <div class="autocomplete-suggestions" id="drop_suggestions" style="display: none;"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="mb-3 d-flex gap-2">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm rounded-pill"
+                        onclick="getCurrentLocation()">
+                        📍 Use My Current Location
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm rounded-pill"
+                        onclick="resetSelection()">
+                        Clear Map Selection
+                    </button>
+
+                </div>
+
+                <input type="hidden" id="pickup_lat" name="pickup_lat">
+                <input type="hidden" id="pickup_lng" name="pickup_lng">
+
+                <input type="hidden" id="drop_lat" name="drop_lat">
+                <input type="hidden" id="drop_lng" name="drop_lng">
+
+                <div
+                    id="map"
+                    style="height:450px; border-radius:15px; border: 1px solid #dee2e6; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                </div>
+
+                <div id="route-summary" class="alert alert-info mt-3" style="display:none; border-radius:12px; border-left: 5px solid #0d6efd;"></div>
+
+                <hr class="my-4">
+
+                <div class="d-flex gap-2">
+                    <button
+                        type="submit"
+                        class="btn btn-success px-4 py-2 rounded-pill fw-bold">
+                        Book Now
+                    </button>
+                    <a
+                        href="{% url 'booking_list' %}"
+                        class="btn btn-secondary px-4 py-2 rounded-pill">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<style>
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 12px;
+    right: 12px;
+    background: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1050;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+.suggestion-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    border-bottom: 1px solid #f1f1f1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.15s ease;
+}
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+    color: #ffc107;
+}
+</style>
+
+<script>
+// JSON representation of vehicle prices
+const vehiclePrices = {{ vehicles_data|safe }};
+const initialPickupAddress = "{{ pickup|escapejs }}";
+const initialDropAddress = "{{ drop|escapejs }}";
+
+// CREATE MAP
+var map = L.map("map").setView([12.2253, 79.0747], 13);
+
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }
+).addTo(map);
+
+let pickupMarker = null;
+let dropMarker = null;
+let routeLine = null;
+let selectingPickup = true;
+
+// CURRENT LOCATION
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                let lat = position.coords.latitude;
+                let lng = position.coords.longitude;
+                map.setView([lat, lng], 15);
+                
+                // Set the current location as pickup point
+                reverseGeocode(lat, lng, "pickup");
+                if (pickupMarker) map.removeLayer(pickupMarker);
+                pickupMarker = L.marker([lat, lng]).addTo(map).bindPopup("Current Location (Pickup)").openPopup();
+                document.getElementById("pickup_lat").value = lat;
+                document.getElementById("pickup_lng").value = lng;
+                selectingPickup = false;
+            },
+            function(error) {
+                alert("Unable to fetch current location. Check browser location permissions.");
+            }
+        );
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+// MAP CLICK
+map.on("click", function(e) {
+    let lat = e.latlng.lat;
+    let lng = e.latlng.lng;
+
+    if (selectingPickup) {
+        if (pickupMarker) map.removeLayer(pickupMarker);
+        pickupMarker = L.marker([lat, lng]).addTo(map).bindPopup("Pickup").openPopup();
+        document.getElementById("pickup_lat").value = lat;
+        document.getElementById("pickup_lng").value = lng;
+        reverseGeocode(lat, lng, "pickup");
+        selectingPickup = false;
+    } else {
+        if (dropMarker) map.removeLayer(dropMarker);
+        dropMarker = L.marker([lat, lng]).addTo(map).bindPopup("Drop").openPopup();
+        document.getElementById("drop_lat").value = lat;
+        document.getElementById("drop_lng").value = lng;
+        reverseGeocode(lat, lng, "drop");
+        selectingPickup = true;
+    }
+});
+
+// REVERSE GEOCODE
+function reverseGeocode(lat, lng, field) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById(field).value = data.display_name;
+            updateRoute();
+        })
+        .catch(err => console.error("Reverse Geocoding error:", err));
+}
+
+// OSRM ROUTE CALCULATION & PLOTTING
+function updateRoute() {
+    const pLat = document.getElementById("pickup_lat").value;
+    const pLng = document.getElementById("pickup_lng").value;
+    const dLat = document.getElementById("drop_lat").value;
+    const dLng = document.getElementById("drop_lng").value;
+
+    if (pLat && pLng && dLat && dLng) {
+        fetch(`https://router.project-osrm.org/route/v1/driving/${pLng},${pLat};${dLng},${dLat}?overview=full&geometries=geojson`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    const distanceKm = (route.distance / 1000).toFixed(2);
+                    const durationMins = Math.round(route.duration / 60);
+
+                    document.getElementById("distance").value = distanceKm;
+
+                    // Draw route polyline
+                    if (routeLine) map.removeLayer(routeLine);
+                    routeLine = L.geoJSON(route.geometry, {
+                        style: { color: '#0d6efd', weight: 5, opacity: 0.75 }
+                    }).addTo(map);
+
+                    map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+
+                    // Update summary box
+                    updateFareEstimate(distanceKm, durationMins);
+                }
+            })
+            .catch(err => console.error("OSRM Routing error:", err));
+    } else {
+        document.getElementById("route-summary").style.display = 'none';
+        if (routeLine) {
+            map.removeLayer(routeLine);
+            routeLine = null;
+        }
+    }
+}
+
+// DYNAMIC FARE ESTIMATE
+function updateFareEstimate(distanceKm, durationMins) {
+    if (!distanceKm) {
+        distanceKm = document.getElementById("distance").value;
+    }
+
+    const summaryDiv = document.getElementById("route-summary");
+    if (!distanceKm || distanceKm === "0") {
+        summaryDiv.style.display = 'none';
+        return;
+    }
+
+    const vehicleSelect = document.querySelector('select[name="vehicle"]') || document.getElementById('id_vehicle');
+    const vehicleId = vehicleSelect ? vehicleSelect.value : '';
+
+    let fareText = '';
+    if (vehicleId && vehiclePrices[vehicleId]) {
+        const rate = vehiclePrices[vehicleId];
+        const fare = (parseFloat(distanceKm) * rate).toFixed(2);
+        fareText = `<br><span class="fw-bold text-success fs-5">Estimated Fare: ₹${fare}</span> (Rate: ₹${rate}/km)`;
+    } else {
+        fareText = '<br><span class="text-muted small"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Select a vehicle in the dropdown to calculate estimate.</span>';
+    }
+
+    summaryDiv.style.display = 'block';
+    summaryDiv.innerHTML = `
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <strong class="text-primary">Trip Estimates:</strong>
+        </div>
+        <div>Road Distance: <span class="fw-bold">${distanceKm} km</span> | Est. Time: <span class="fw-bold">${durationMins || '?'} mins</span></div>
+        ${fareText}
+    `;
+}
+
+// ADRESS GEOCODING
+function geocodeAddress(address, isPickup) {
+    if (!address) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=in&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                setCoordinates(lat, lng, isPickup, address);
+            }
+        })
+        .catch(err => console.error("Geocoding error:", err));
+}
+
+function setCoordinates(lat, lng, isPickup, addressName) {
+    if (isPickup) {
+        if (pickupMarker) map.removeLayer(pickupMarker);
+        pickupMarker = L.marker([lat, lng]).addTo(map).bindPopup("Pickup: " + addressName).openPopup();
+        document.getElementById("pickup_lat").value = lat;
+        document.getElementById("pickup_lng").value = lng;
+        document.getElementById("pickup").value = addressName;
+        selectingPickup = false;
+    } else {
+        if (dropMarker) map.removeLayer(dropMarker);
+        dropMarker = L.marker([lat, lng]).addTo(map).bindPopup("Drop: " + addressName).openPopup();
+        document.getElementById("drop_lat").value = lat;
+        document.getElementById("drop_lng").value = lng;
+        document.getElementById("drop").value = addressName;
+        selectingPickup = true;
+    }
+
+    if (!pickupMarker || !dropMarker) {
+        map.setView([lat, lng], 14);
+    }
+    updateRoute();
+}
+
+// FORM ADDRESS AUTOCOMPLETE
+function initFormAutocomplete(inputId, suggestionsId, isPickup) {
+    const input = document.getElementById(inputId);
+    const suggestionsContainer = document.getElementById(suggestionsId);
+    let debounceTimer;
+
+    input.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+
+        if (query.length < 3) {
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=5`)
+                .then(res => res.json())
+                .then(data => {
+                    suggestionsContainer.innerHTML = '';
+                    if (data.length > 0) {
+                        suggestionsContainer.style.display = 'block';
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'suggestion-item';
+                            div.innerText = item.display_name;
+                            div.addEventListener('click', () => {
+                                const lat = parseFloat(item.lat);
+                                const lng = parseFloat(item.lon);
+                                setCoordinates(lat, lng, isPickup, item.display_name);
+                                suggestionsContainer.innerHTML = '';
+                                suggestionsContainer.style.display = 'none';
+                            });
+                            suggestionsContainer.appendChild(div);
+                        });
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error(err));
+        }, 400);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== input && e.target !== suggestionsContainer) {
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+}
+
+// RESET SELECTION
+function resetSelection() {
+    if (pickupMarker) map.removeLayer(pickupMarker);
+    if (dropMarker) map.removeLayer(dropMarker);
+    if (routeLine) map.removeLayer(routeLine);
+
+    pickupMarker = null;
+    dropMarker = null;
+    routeLine = null;
+    selectingPickup = true;
+
+    document.getElementById("pickup").value = "";
+    document.getElementById("drop").value = "";
+    document.getElementById("pickup_lat").value = "";
+    document.getElementById("pickup_lng").value = "";
+    document.getElementById("drop_lat").value = "";
+    document.getElementById("drop_lng").value = "";
+    document.getElementById("distance").value = "0";
+    document.getElementById("route-summary").style.display = 'none';
+    map.setView([12.2253, 79.0747], 13);
+}
+
+// LISTENERS & INITIALIZATION
+document.addEventListener("DOMContentLoaded", function() {
+    initFormAutocomplete("pickup", "pickup_suggestions", true);
+    initFormAutocomplete("drop", "drop_suggestions", false);
+
+    const vehicleSelect = document.querySelector('select[name="vehicle"]') || document.getElementById('id_vehicle');
+    if (vehicleSelect) {
+        vehicleSelect.addEventListener("change", function() {
+            updateRoute();
+        });
+    }
+
+    // Geocode initial inputs (if redirecting from search query)
+    if (initialPickupAddress) {
+        geocodeAddress(initialPickupAddress, true);
+    }
+    if (initialDropAddress) {
+        geocodeAddress(initialDropAddress, false);
+    }
+});
+</script>
+{% endblock %}

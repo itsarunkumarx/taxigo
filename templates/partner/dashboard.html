@@ -1,0 +1,105 @@
+{% extends 'dashboard_base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <h2 class="mb-4">Welcome, {{ request.user.display_name }}</h2>
+
+    <div class="row g-3">
+
+        <div class="col-sm-6 col-md-3">
+            <div class="card bg-primary text-white shadow h-100">
+                <div class="card-body">
+                    <h6>My Vehicles</h6>
+                    <h2>{{ vehicle_count }}</h2>
+                    <small>{{ available_vehicle_count }} available</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="card bg-info text-white shadow h-100">
+                <div class="card-body">
+                    <h6>My Drivers</h6>
+                    <h2>{{ driver_count }}</h2>
+                    <small>{{ active_driver_count }} active</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="card bg-warning text-dark shadow h-100">
+                <div class="card-body">
+                    <h6>Bookings</h6>
+                    <h2>{{ booking_count }}</h2>
+                    <small>{{ pending_count }} pending</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="card bg-success text-white shadow h-100">
+                <div class="card-body">
+                    <h6>Total Earnings</h6>
+                    <h2>₹{{ total_earnings }}</h2>
+                    <small>{{ completed_count }} completed rides</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <a href="{% url 'add_vehicle' %}" class="btn btn-primary">+ Add Vehicle</a>
+        <a href="{% url 'add_driver' %}" class="btn btn-outline-primary">+ Add Driver</a>
+        <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary">View All Bookings</a>
+    </div>
+
+    <div class="mt-5">
+
+        <h4>Recent Bookings</h4>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Pickup</th>
+                        <th>Drop</th>
+                        <th>Fare</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for booking in recent_bookings %}
+                    <tr>
+                        <td>{{ booking.id }}</td>
+                        <td>{{ booking.customer }}</td>
+                        <td>{{ booking.vehicle }}</td>
+                        <td>{{ booking.pickup_location }}</td>
+                        <td>{{ booking.drop_location }}</td>
+                        <td>₹{{ booking.total_fare }}</td>
+                        <td>{{ booking.status }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No bookings yet</td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

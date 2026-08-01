@@ -1,0 +1,184 @@
+{% extends 'driver_base.html' %}
+{% load static %}
+
+{% block title %}Driver Document Verification Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .doc-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 24px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+  }
+  .doc-card.uploaded { border-color: #10b981; }
+  .doc-status-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 950px;">
+
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-file-earmark-check-fill text-warning me-2"></i>Document Verification Portal</h3>
+      <p class="text-muted small mb-0">Upload License, Aadhaar, Vehicle RC & Insurance for verification</p>
+    </div>
+    <a href="/driver/earnings/" class="btn btn-outline-light rounded-pill fw-bold text-nowrap d-none d-md-inline-flex align-items-center">
+      <i class="bi bi-graph-up-arrow me-1"></i> Earnings Dashboard
+    </a>
+  </div>
+
+  <!-- Verification Status Alert Banner -->
+  <div class="mb-4">
+    {% if driver.verification_status == 'APPROVED' %}
+      <div class="alert alert-success border-0 rounded-4 p-3 shadow-sm d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+          <div>
+            <h5 class="fw-bold mb-0">Profile Verification Approved!</h5>
+            <span class="small text-muted">You are verified and eligible to receive ride requests.</span>
+          </div>
+        </div>
+        <span class="doc-status-badge bg-success text-white">VERIFIED</span>
+      </div>
+    {% elif driver.verification_status == 'REJECTED' %}
+      <div class="alert alert-danger border-0 rounded-4 p-3 shadow-sm d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-x-circle-fill fs-2 text-danger"></i>
+          <div>
+            <h5 class="fw-bold mb-0">Documents Rejected</h5>
+            <span class="small text-muted">Reason: {{ driver.rejection_reason|default:"Invalid document copy" }}. Please re-upload below.</span>
+          </div>
+        </div>
+        <span class="doc-status-badge bg-danger text-white">ACTION REQUIRED</span>
+      </div>
+    {% else %}
+      <div class="alert alert-warning border-0 rounded-4 p-3 shadow-sm d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-hourglass-split fs-2 text-dark"></i>
+          <div>
+            <h5 class="fw-bold mb-0">Documents Under Review</h5>
+            <span class="small text-muted">Submitted to Admin team. Review takes 12-24 hours.</span>
+          </div>
+        </div>
+        <span class="doc-status-badge bg-warning text-dark">PENDING</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Document Upload Form -->
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row g-4 mb-4">
+
+      <!-- 1. Driving License -->
+      <div class="col-md-6">
+        <div class="doc-card {% if driver.license_copy %}uploaded{% endif %}">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-card-heading text-primary me-2"></i>1. Driving License Copy</h6>
+            {% if driver.license_copy %}
+              <span class="badge bg-success-subtle text-success">Uploaded</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-muted">Missing</span>
+            {% endif %}
+          </div>
+
+          <label class="form-label small text-muted">License No: <strong>{{ driver.license_number }}</strong></label>
+          <input type="file" name="license_copy" class="form-control mb-2" accept="image/*,.pdf">
+          
+          {% if driver.license_copy %}
+            <a href="{{ driver.license_copy.url }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill w-100 mt-2">
+              <i class="bi bi-eye-fill me-1"></i> View Uploaded License
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 2. Aadhaar Card -->
+      <div class="col-md-6">
+        <div class="doc-card {% if driver.aadhaar_copy %}uploaded{% endif %}">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-vcard text-info me-2"></i>2. Aadhaar Card Copy</h6>
+            {% if driver.aadhaar_copy %}
+              <span class="badge bg-success-subtle text-success">Uploaded</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-muted">Missing</span>
+            {% endif %}
+          </div>
+
+          <label class="form-label small text-muted">Aadhaar No: <strong>{{ driver.aadhaar_number }}</strong></label>
+          <input type="file" name="aadhaar_copy" class="form-control mb-2" accept="image/*,.pdf">
+          
+          {% if driver.aadhaar_copy %}
+            <a href="{{ driver.aadhaar_copy.url }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill w-100 mt-2">
+              <i class="bi bi-eye-fill me-1"></i> View Uploaded Aadhaar
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 3. Vehicle RC -->
+      <div class="col-md-6">
+        <div class="doc-card {% if driver.rc_copy %}uploaded{% endif %}">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-car-front text-warning me-2"></i>3. Vehicle Registration (RC)</h6>
+            {% if driver.rc_copy %}
+              <span class="badge bg-success-subtle text-success">Uploaded</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-muted">Missing</span>
+            {% endif %}
+          </div>
+
+          <label class="form-label small text-muted">Vehicle Registration Document</label>
+          <input type="file" name="rc_copy" class="form-control mb-2" accept="image/*,.pdf">
+          
+          {% if driver.rc_copy %}
+            <a href="{{ driver.rc_copy.url }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill w-100 mt-2">
+              <i class="bi bi-eye-fill me-1"></i> View Uploaded RC
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 4. Vehicle Insurance -->
+      <div class="col-md-6">
+        <div class="doc-card {% if driver.insurance_copy %}uploaded{% endif %}">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-shield-check text-success me-2"></i>4. Vehicle Insurance Copy</h6>
+            {% if driver.insurance_copy %}
+              <span class="badge bg-success-subtle text-success">Uploaded</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-muted">Missing</span>
+            {% endif %}
+          </div>
+
+          <label class="form-label small text-muted">Commercial Vehicle Insurance Policy</label>
+          <input type="file" name="insurance_copy" class="form-control mb-2" accept="image/*,.pdf">
+          
+          {% if driver.insurance_copy %}
+            <a href="{{ driver.insurance_copy.url }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill w-100 mt-2">
+              <i class="bi bi-eye-fill me-1"></i> View Uploaded Insurance
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold rounded-pill py-3 text-dark shadow">
+      <i class="bi bi-cloud-upload-fill me-2"></i> Upload Documents for Verification
+    </button>
+  </form>
+
+</div>
+{% endblock %}

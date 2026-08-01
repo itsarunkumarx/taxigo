@@ -1,0 +1,440 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Dashboard - Admin{% endblock %}
+{% block page_title %}Overview Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card { 
+        background: #fff; 
+        border-radius: 16px; 
+        padding: 24px; 
+        box-shadow: 0 1px 8px rgba(0,0,0,0.03); 
+        border: 1px solid #e2e8f0; 
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+    }
+    .stat-icon { 
+        width: 52px; 
+        height: 52px; 
+        border-radius: 14px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 24px; 
+    }
+    .stat-number { 
+        font-size: 32px; 
+        font-weight: 800; 
+        color: #0f172a; 
+        margin: 8px 0 2px; 
+        font-family: 'Outfit', sans-serif; 
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .stat-trend {
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .icon-blue { background: #eff6ff; color: #3b82f6; }
+    .icon-emerald { background: #ecfdf5; color: #10b981; }
+    .icon-violet { background: #f5f3ff; color: #8b5cf6; }
+    .icon-amber { background: #fffbeb; color: #f59e0b; }
+    .icon-rose { background: #fff1f2; color: #f43f5e; }
+    .icon-teal { background: #f0fdfa; color: #14b8a6; }
+
+    .chart-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 8px rgba(0,0,0,0.03);
+        height: 100%;
+    }
+    .chart-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 20px;
+    }
+    
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 8px rgba(0,0,0,0.03);
+        height: 100%;
+    }
+    .modern-table th {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #f1f5f9;
+        padding: 12px 16px;
+    }
+    .modern-table td {
+        font-size: 14px;
+        color: #334155;
+        font-weight: 500;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        padding: 16px;
+    }
+    .modern-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        color: #475569;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .quick-action-btn:hover {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #3b82f6;
+    }
+    .quick-action-btn i {
+        font-size: 28px;
+    }
+    
+    .request-panel {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        border-radius: 16px;
+        padding: 24px;
+        color: #fff;
+    }
+    .request-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        text-decoration: none;
+        color: #fff;
+        transition: background 0.2s;
+    }
+    .request-item:hover {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i class="bi bi-people-fill"></i></div>
+                <div class="stat-number" data-target="{{ customers_count|default:1250 }}">0</div>
+                <div class="stat-label">Customers</div>
+                <div class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i> 12% this month</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-icon icon-emerald"><i class="bi bi-handshake-fill"></i></div>
+                <div class="stat-number" data-target="{{ partners_count|default:85 }}">0</div>
+                <div class="stat-label">Partners</div>
+                <div class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i> 5% this month</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-icon icon-violet"><i class="bi bi-person-badge-fill"></i></div>
+                <div class="stat-number" data-target="{{ drivers_count|default:340 }}">0</div>
+                <div class="stat-label">Drivers</div>
+                <div class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i> 8% this month</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-icon icon-amber"><i class="bi bi-car-front-fill"></i></div>
+                <div class="stat-number" data-target="{{ vehicles_count|default:420 }}">0</div>
+                <div class="stat-label">Vehicles</div>
+                <div class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i> 15% this month</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-icon icon-rose"><i class="bi bi-calendar-check-fill"></i></div>
+                <div class="stat-number" data-target="{{ bookings_count|default:8450 }}">0</div>
+                <div class="stat-label">Bookings</div>
+                <div class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i> 22% this month</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-icon icon-teal"><i class="bi bi-currency-dollar"></i></div>
+                <div class="stat-number" data-target="{{ revenue_total|default:245000 }}">0</div>
+                <div class="stat-label">Revenue ($)</div>
+                <div class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i> 18% this month</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-title">Revenue (Last 6 Months)</div>
+                <canvas id="monthlyRevenueChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-card">
+                <div class="chart-title">Booking Status</div>
+                <div style="position: relative; height:250px; display:flex; justify-content:center;">
+                    <canvas id="bookingStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="table-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="chart-title mb-0">Recent Bookings</div>
+                    <a href="/booking/" class="btn btn-sm btn-light fw-bold text-primary">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table modern-table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Fare</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                            <tr>
+                                <td>#{{ booking.id }}</td>
+                                <td>{{ booking.customer.display_name }}</td>
+                                <td>{{ booking.vehicle.model_name|default:"-" }}</td>
+                                <td>${{ booking.fare|default:"0.00" }}</td>
+                                <td>
+                                    {% if booking.status == 'PENDING' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% elif booking.status == 'CONFIRMED' %}
+                                        <span class="badge bg-info text-dark">Confirmed</span>
+                                    {% elif booking.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% elif booking.status == 'CANCELLED' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ booking.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td>#10042</td>
+                                <td>John Doe</td>
+                                <td>Toyota Camry</td>
+                                <td>$45.00</td>
+                                <td><span class="badge bg-success">Completed</span></td>
+                                <td>Today, 10:30 AM</td>
+                            </tr>
+                            <tr>
+                                <td>#10043</td>
+                                <td>Sarah Smith</td>
+                                <td>Honda Civic</td>
+                                <td>$32.50</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td>Today, 11:15 AM</td>
+                            </tr>
+                            <tr>
+                                <td>#10044</td>
+                                <td>Mike Johnson</td>
+                                <td>Ford Transit</td>
+                                <td>$85.00</td>
+                                <td><span class="badge bg-info text-dark">Confirmed</span></td>
+                                <td>Today, 12:00 PM</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="request-panel mb-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-bell-fill text-warning me-2"></i> Pending Requests</h5>
+                
+                <a href="/admin-panel/partner-requests/" class="request-item">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-primary bg-opacity-25 text-white" style="width:40px; height:40px; font-size:18px;"><i class="bi bi-handshake-fill"></i></div>
+                        <div>
+                            <div class="fw-bold">Partner Requests</div>
+                            <div class="small text-white-50">Requires approval</div>
+                        </div>
+                    </div>
+                    <span class="badge bg-danger rounded-pill fs-6 px-3">{{ partner_pending|default:"3" }}</span>
+                </a>
+                
+                <a href="/admin-panel/driver-requests/" class="request-item mb-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-info bg-opacity-25 text-white" style="width:40px; height:40px; font-size:18px;"><i class="bi bi-person-badge-fill"></i></div>
+                        <div>
+                            <div class="fw-bold">Driver Requests</div>
+                            <div class="small text-white-50">Awaiting verification</div>
+                        </div>
+                    </div>
+                    <span class="badge bg-danger rounded-pill fs-6 px-3">{{ driver_pending|default:"7" }}</span>
+                </a>
+            </div>
+            
+            <div class="table-card">
+                <div class="chart-title mb-3">Quick Actions</div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="/vehicle/" class="quick-action-btn">
+                            <i class="bi bi-car-front"></i>
+                            <span>Vehicles</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/driver/" class="quick-action-btn">
+                            <i class="bi bi-steering-wheel"></i>
+                            <span>Drivers</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/booking/" class="quick-action-btn">
+                            <i class="bi bi-calendar-check"></i>
+                            <span>Bookings</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/payment/" class="quick-action-btn">
+                            <i class="bi bi-credit-card"></i>
+                            <span>Payments</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Count Up Animation
+        const counters = document.querySelectorAll('.stat-number');
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const duration = 1500; // ms
+            const step = target / (duration / 16); // 60fps
+            let current = 0;
+
+            const updateCounter = () => {
+                current += step;
+                if(current < target) {
+                    counter.innerText = Math.ceil(current).toLocaleString();
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.innerText = target.toLocaleString();
+                }
+            };
+            if(target > 0) updateCounter();
+        });
+
+        // Charts
+        const ctxRev = document.getElementById('monthlyRevenueChart').getContext('2d');
+        new Chart(ctxRev, {
+            type: 'bar',
+            data: {
+                labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [45000, 62000, 38000, 71000, 55000, 88000],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6,
+                    barThickness: 32
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [4, 4], color: '#f1f5f9' },
+                        border: { display: false }
+                    },
+                    x: {
+                        grid: { display: false },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+
+        const ctxStatus = document.getElementById('bookingStatusChart').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+                datasets: [{
+                    data: [
+                        {{ pending_count|default:15 }}, 
+                        {{ confirmed_count|default:25 }}, 
+                        {{ completed_count|default:120 }}, 
+                        {{ cancelled_count|default:5 }}
+                    ],
+                    backgroundColor: ['#f59e0b', '#0ea5e9', '#10b981', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

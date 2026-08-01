@@ -1,0 +1,144 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #2563eb, #1d4ed8);
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        --dark-accent: #0f172a;
+    }
+
+    .form-wrapper {
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .premium-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 2.5rem;
+        border: none;
+    }
+
+    .form-title {
+        font-weight: 700;
+        color: var(--dark-accent);
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.75rem;
+    }
+
+    .premium-form p {
+        margin-bottom: 1.5rem;
+    }
+
+    .premium-form label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+    }
+
+    .premium-form input[type="text"],
+    .premium-form input[type="number"],
+    .premium-form input[type="email"],
+    .premium-form input[type="password"],
+    .premium-form select,
+    .premium-form textarea {
+        width: 100%;
+        border-radius: 10px;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        background-color: #f8fafc;
+        transition: all 0.2s;
+        font-size: 1rem;
+        color: var(--dark-accent);
+    }
+
+    .premium-form input:focus,
+    .premium-form select:focus,
+    .premium-form textarea:focus {
+        border-color: #3b82f6;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .premium-form input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.5rem;
+        cursor: pointer;
+    }
+
+    .btn-gradient {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.875rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        color: white;
+    }
+
+    .cancel-link {
+        display: block;
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .cancel-link:hover {
+        color: var(--dark-accent);
+    }
+
+    .helptext {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    ul.errorlist {
+        color: #ef4444;
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="form-wrapper">
+        <div class="premium-card">
+            <h2 class="form-title">
+                {% if form.instance.pk %}Edit Driver{% else %}Add Driver{% endif %}
+            </h2>
+            
+            <form method="post" class="premium-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {{ form.as_p }}
+                
+                <button type="submit" class="btn-gradient">
+                    {% if form.instance.pk %}Save Changes{% else %}Create Driver{% endif %}
+                </button>
+                <a href="{% url 'driver_list' %}" class="cancel-link">Cancel and return to list</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

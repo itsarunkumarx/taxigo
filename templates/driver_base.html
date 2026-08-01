@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Driver Partner Console — Taxigo{% endblock %}</title>
+
+  <!-- Google Fonts Outfit & Bootstrap 5 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      --driver-bg: #090d16;
+      --driver-card: #121929;
+      --driver-accent: #f59e0b;
+      --driver-green: #10b981;
+      --driver-text: #f8fafc;
+      --driver-muted: #94a3b8;
+    }
+
+    body {
+      background-color: var(--driver-bg);
+      color: var(--driver-text);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 75px; /* Mobile bottom nav padding */
+    }
+
+    /* Driver Top App Bar */
+    .driver-topbar {
+      background: #0d1322;
+      border-bottom: 1px solid #1e293b;
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .driver-logo-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    .driver-nav-link {
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .driver-nav-link:hover {
+      color: #ffffff;
+      background: rgba(255,255,255,0.05);
+    }
+    .driver-nav-link.active {
+      color: #000000 !important;
+      background: #f59e0b !important;
+      font-weight: 700;
+    }
+
+    .driver-profile-pill {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 4px 12px;
+      border-radius: 50px;
+    }
+
+    /* Card Customization for Driver App */
+    .card {
+      background-color: var(--driver-card);
+      border-color: #1e293b;
+      color: var(--driver-text);
+    }
+    .table-hover tbody tr:hover {
+      background-color: #1a2336 !important;
+      color: #ffffff !important;
+    }
+
+    /* Mobile Bottom Nav Bar (Uber/Ola Driver style) */
+    .driver-mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0d1322;
+      border-top: 1px solid #1e293b;
+      z-index: 10000;
+      padding: 8px 16px;
+    }
+    @media (max-width: 991px) {
+      .driver-mobile-nav { display: flex; justify-content: space-around; }
+      .driver-desktop-nav { display: none !important; }
+    }
+    .mobile-tab-item {
+      color: #94a3b8;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .mobile-tab-item.active { color: #f59e0b; }
+    .mobile-tab-item i { font-size: 20px; display: block; margin-bottom: 2px; }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Driver Dedicated Top Navigation Bar -->
+  <header class="driver-topbar">
+    <div class="container-fluid d-flex align-items-center justify-content-between">
+      
+      <!-- Brand Logo -->
+      <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'driver_rides' %}" class="text-decoration-none d-flex align-items-center gap-2">
+          <span class="fs-4">🚖</span>
+          <span class="fw-bold text-white fs-5">Rovexa <span class="text-warning">Driver</span></span>
+          <span class="driver-logo-badge">PRO</span>
+        </a>
+      </div>
+
+      <!-- Center Desktop Navigation Tabs -->
+      <nav class="driver-desktop-nav d-flex align-items-center gap-2">
+        <a href="{% url 'driver_rides' %}" class="driver-nav-link {% if request.path == '/driver/rides/' %}active{% endif %}">
+          <i class="bi bi-compass-fill"></i> Ride Radar
+        </a>
+        <a href="{% url 'driver_earnings' %}" class="driver-nav-link {% if request.path == '/driver/earnings/' %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i> Earnings & Performance
+        </a>
+        <a href="{% url 'driver_documents' %}" class="driver-nav-link {% if request.path == '/driver/documents/' %}active{% endif %}">
+          <i class="bi bi-file-earmark-check-fill"></i> Documents
+        </a>
+      </nav>
+
+      <!-- Right Profile & Status Pill -->
+      <div class="d-flex align-items-center gap-3">
+        <div class="driver-profile-pill d-flex align-items-center gap-2">
+          <span class="badge bg-warning text-dark fw-bold">4.9 ★</span>
+          <span class="small fw-semibold text-white d-none d-sm-inline">{{ request.user.display_name|default:request.user.username }}</span>
+        </div>
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm rounded-circle p-2" title="Logout">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Main Content Block -->
+  <main class="py-2">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Mobile Bottom Tab Bar (Uber/Ola Driver style) -->
+  <div class="driver-mobile-nav">
+    <a href="{% url 'driver_rides' %}" class="mobile-tab-item {% if request.path == '/driver/rides/' %}active{% endif %}">
+      <i class="bi bi-compass-fill"></i>
+      <span>Ride Radar</span>
+    </a>
+    <a href="{% url 'driver_earnings' %}" class="mobile-tab-item {% if request.path == '/driver/earnings/' %}active{% endif %}">
+      <i class="bi bi-graph-up-arrow"></i>
+      <span>Earnings</span>
+    </a>
+    <a href="{% url 'driver_documents' %}" class="mobile-tab-item {% if request.path == '/driver/documents/' %}active{% endif %}">
+      <i class="bi bi-file-earmark-check-fill"></i>
+      <span>Documents</span>
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

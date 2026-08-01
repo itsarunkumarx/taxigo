@@ -1,0 +1,811 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Choose Ride — Taxigo{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #f59e0b;
+    --primary-dark: #d97706;
+    --bg-dark: #0f172a;
+    --card-bg: #1e293b;
+  }
+
+  body { background-color: #0f172a; color: #f8fafc; }
+
+  .ride-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .map-box {
+    width: 100%;
+    height: 520px;
+    border-radius: 20px;
+    border: 2px solid #334155;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  .booking-panel {
+    background: #1e293b;
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid #334155;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+
+  .ride-card {
+    background: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .ride-card:hover {
+    border-color: #f59e0b;
+    transform: translateY(-2px);
+    background: #192339;
+  }
+
+  .ride-card.active {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
+  }
+
+  .ride-icon {
+    font-size: 36px;
+    width: 50px;
+    text-align: center;
+  }
+
+  .autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 1050;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #e2e8f0;
+    border-bottom: 1px solid #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .suggestion-item:hover {
+    background: #334155;
+    color: #f59e0b;
+  }
+
+  .badge-eta {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 ride-container">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-1 text-white"><i class="bi bi-geo-fill text-warning me-2"></i>Select Your Ride</h2>
+      <p class="text-muted small mb-0">Choose from Auto, Mini, Sedan, SUV, or Premium rides with live ETA & instant driver matching</p>
+    </div>
+    <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary rounded-pill px-4 btn-sm">
+      <i class="bi bi-clock-history me-1"></i> My Bookings
+    </a>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT: SEARCH & RIDE SELECTION -->
+    <div class="col-lg-5">
+
+      <!-- Category Selector Tabs -->
+      <div class="card border-secondary bg-dark mb-3 rounded-4">
+        <div class="card-body p-2">
+          <div class="nav nav-pills nav-justified gap-1" id="ride_category_tabs">
+            <button class="nav-link active bg-warning text-dark fw-bold rounded-3 py-2 px-1" onclick="switchRideCategory('DAILY_RIDE')">
+              🚕 Daily
+            </button>
+            <button class="nav-link text-white fw-bold rounded-3 py-2 px-1" onclick="switchRideCategory('SCHEDULED')">
+              📅 Book Later
+            </button>
+            <button class="nav-link text-white fw-bold rounded-3 py-2 px-1" onclick="switchRideCategory('RENTAL')">
+              ⏱️ Rental
+            </button>
+            <button class="nav-link text-white fw-bold rounded-3 py-2 px-1" onclick="switchRideCategory('OUTSTATION')">
+              🛣️ Outstation
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Ride Options Panel -->
+      <div id="advanced_options_panel" class="booking-panel mb-3" style="display:none;">
+        <!-- Scheduled Date/Time -->
+        <div id="option_scheduled" style="display:none;">
+          <label class="form-label fw-bold small text-warning">SCHEDULE PICKUP DATE & TIME</label>
+          <input type="datetime-local" id="scheduled_datetime_input" class="form-control bg-dark text-white border-secondary">
+        </div>
+
+        <!-- Rental Package -->
+        <div id="option_rental" style="display:none;">
+          <label class="form-label fw-bold small text-warning">SELECT HOURLY RENTAL PACKAGE</label>
+          <select id="rental_package_select" class="form-select bg-dark text-white border-secondary" onchange="recalculateFare()">
+            <option value="2_HRS_20_KM">2 Hours / 20 KM — ₹499 Base</option>
+            <option value="4_HRS_40_KM">4 Hours / 40 KM — ₹899 Base</option>
+            <option value="8_HRS_80_KM" selected>8 Hours / 80 KM — ₹1799 Base</option>
+          </select>
+        </div>
+
+        <!-- Outstation Type -->
+        <div id="option_outstation" style="display:none;">
+          <label class="form-label fw-bold small text-warning">OUTSTATION TRIP TYPE</label>
+          <select id="outstation_type_select" class="form-select bg-dark text-white border-secondary mb-2" onchange="recalculateFare()">
+            <option value="ONE_WAY" selected>One-Way Outstation (₹16/km)</option>
+            <option value="ROUND_TRIP">Round-Trip Outstation (₹14/km)</option>
+          </select>
+        </div>
+      </div>
+
+      <input type="hidden" id="selected_category" value="DAILY_RIDE">
+
+      <div class="booking-panel mb-4">
+        <!-- Quick Location Shortcut Chips -->
+        <label class="form-label fw-bold small text-muted mb-2">QUICK DESTINATION SHORTCUTS</label>
+        <div class="d-flex gap-2 mb-3 overflow-x-auto pb-1" id="quick_location_chips">
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" onclick="setQuickDrop('MG Road Metro Station, Bengaluru', 12.9756, 77.6066)">
+            🏠 Home
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" onclick="setQuickDrop('Manyata Tech Park, Nagavara, Bengaluru', 13.0456, 77.6200)">
+            🏢 Work
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" onclick="setQuickDrop('Kempegowda International Airport (BLR)', 13.1986, 77.7066)">
+            ✈️ Airport
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" onclick="setQuickDrop('KSR Bengaluru Railway Station', 12.9781, 77.5697)">
+            🚉 Railway
+          </button>
+        </div>
+
+        <!-- Pickup Input -->
+        <div class="mb-3 position-relative">
+          <label class="form-label fw-bold small text-muted">PICKUP LOCATION</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-geo-alt-fill"></i></span>
+            <input type="text" id="pickup_input" class="form-control bg-dark text-white border-secondary"
+                   placeholder="Enter pickup location" value="{{ pickup }}" autocomplete="off">
+            <button class="btn btn-outline-warning" type="button" onclick="useCurrentGPSLocation()" title="Use GPS Location">
+              <i class="bi bi-crosshair"></i>
+            </button>
+          </div>
+          <div id="pickup_suggestions" class="autocomplete-suggestions" style="display:none;"></div>
+        </div>
+
+        <!-- Drop Input -->
+        <div class="mb-3 position-relative">
+          <label class="form-label fw-bold small text-muted">DROP LOCATION</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary text-danger"><i class="bi bi-flag-fill"></i></span>
+            <input type="text" id="drop_input" class="form-control bg-dark text-white border-secondary"
+                   placeholder="Enter drop destination" value="{{ drop }}" autocomplete="off">
+          </div>
+          <div id="drop_suggestions" class="autocomplete-suggestions" style="display:none;"></div>
+        </div>
+
+        <!-- Waypoints Container -->
+        <div id="waypoints_container"></div>
+        <button type="button" class="btn btn-outline-warning btn-sm rounded-pill mb-3" onclick="addWaypointField()">
+          <i class="bi bi-plus-circle-fill me-1"></i>+ Add Stop / Waypoint
+        </button>
+
+        <!-- Hidden coordinates & distance -->
+        <input type="hidden" id="pickup_lat" value="12.9716">
+        <input type="hidden" id="pickup_lng" value="77.5946">
+        <input type="hidden" id="drop_lat" value="12.9352">
+        <input type="hidden" id="drop_lng" value="77.6245">
+        <input type="hidden" id="calculated_distance" value="5.2">
+        <input type="hidden" id="calculated_duration" value="15">
+
+        <!-- Route Summary Bar -->
+        <div id="route_info_bar" class="p-3 mb-3 rounded-3" style="background:#0f172a; border:1px solid #334155;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-muted small d-block">ESTIMATED ROUTE</span>
+              <strong id="summary_dist" class="text-white">5.2 km</strong> • <span id="summary_time" class="text-warning">15 mins</span>
+            </div>
+            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">Fastest Route</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 VEHICLE RIDE TYPE CARDS -->
+      <h5 class="fw-bold text-white mb-3"><i class="bi bi-car-front-fill text-warning me-2"></i>Available Vehicle Types</h5>
+      
+      <div id="ride_types_list">
+        {% for cat in categories %}
+        <div class="ride-card {% if forloop.first %}active{% endif %}"
+             data-type="{{ cat.type }}"
+             data-rate="{{ cat.rate_per_km }}"
+             data-base="{{ cat.base_fare }}"
+             data-capacity="{{ cat.capacity }}"
+             onclick="selectRideType(this, '{{ cat.type }}', {{ cat.rate_per_km }}, {{ cat.base_fare }})">
+          
+          <div class="d-flex align-items-center gap-3">
+            <div class="ride-icon">{{ cat.icon }}</div>
+            <div>
+              <div class="fw-bold text-white d-flex align-items-center gap-2">
+                {{ cat.name }}
+                <span class="text-muted small fw-normal"><i class="bi bi-person-fill"></i> {{ cat.capacity }}</span>
+              </div>
+              <div class="text-muted small">{{ cat.desc }}</div>
+              <span class="badge-eta mt-1 d-inline-block">ETA {{ cat.eta_min }} mins</span>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <div class="fw-bold text-warning fs-5 ride-fare-val" id="fare_{{ cat.type }}">₹{{ cat.base_fare }}</div>
+            <div class="text-muted x-small" style="font-size:11px;">₹{{ cat.rate_per_km }}/km</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Promo Code & Coupon Section -->
+      <div class="booking-panel mt-3 p-3">
+        <div class="mb-2">
+          <span class="text-muted small fw-bold"><i class="bi bi-ticket-perforated-fill text-warning me-1"></i> PROMO CODE / COUPON</span>
+        </div>
+        <div class="input-group">
+          <input type="text" id="coupon_input" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Try WELCOME10 or TAXIGO20">
+          <button type="button" onclick="applyCoupon()" class="btn btn-warning btn-sm fw-bold">Apply</button>
+        </div>
+        <div id="coupon_msg" class="small mt-1" style="display:none;"></div>
+      </div>
+
+      <!-- Dynamic Fare Breakdown Card -->
+      <div id="fare_breakdown_card" class="booking-panel mt-3 p-3" style="background:#0f172a;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small fw-bold">FARE BREAKDOWN</span>
+          <span id="surge_badge" class="badge bg-warning text-dark" style="display:none;">⚡ 1.25x Surge</span>
+        </div>
+        <div class="small text-muted mb-1 d-flex justify-content-between">
+          <span>Base Fare</span>
+          <span id="fb_base" class="text-white">₹40.00</span>
+        </div>
+        <div class="small text-muted mb-1 d-flex justify-content-between">
+          <span>Distance Fare (<span id="fb_dist_km">5.2</span> km)</span>
+          <span id="fb_dist" class="text-white">₹78.00</span>
+        </div>
+        <div class="small text-muted mb-1 d-flex justify-content-between">
+          <span>Time Fare (<span id="fb_time_min">15</span> mins)</span>
+          <span id="fb_time" class="text-white">₹30.00</span>
+        </div>
+        <div id="fb_night_row" class="small text-warning mb-1 d-flex justify-content-between" style="display:none;">
+          <span>🌙 Night Surcharge (+20%)</span>
+          <span id="fb_night">₹0.00</span>
+        </div>
+        <div id="fb_airport_row" class="small text-info mb-1 d-flex justify-content-between" style="display:none;">
+          <span>✈️ Airport Charge</span>
+          <span id="fb_airport">₹50.00</span>
+        </div>
+        <div id="fb_discount_row" class="small text-success mb-1 d-flex justify-content-between" style="display:none;">
+          <span>🏷️ Coupon Discount</span>
+          <span id="fb_discount">-₹0.00</span>
+        </div>
+        <hr class="border-secondary my-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <strong class="text-white">Total Estimated Fare</strong>
+          <strong id="fb_total" class="text-warning fs-5">₹148.00</strong>
+        </div>
+      </div>
+
+      <!-- Payment Method Selection -->
+      <div class="booking-panel mt-3 p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted small fw-bold">PAYMENT METHOD</span>
+          <select id="payment_method" class="form-select form-select-sm bg-dark text-white border-secondary w-auto">
+            <option value="CASH" selected>💵 Cash to Driver</option>
+            <option value="UPI">📱 UPI / QR Code</option>
+            <option value="RAZORPAY">💳 Online Card / Wallet</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- BOOK RIDE BUTTON -->
+      <button id="book_ride_btn" onclick="submitBooking()" class="btn btn-warning btn-lg w-100 mt-3 py-3 fw-bold rounded-pill shadow-lg text-dark">
+        <i class="bi bi-lightning-charge-fill me-2"></i>CONFIRM & BOOK RIDE
+      </button>
+
+    </div>
+
+    <!-- RIGHT: INTERACTIVE MAP -->
+    <div class="col-lg-7">
+      <div class="map-box" id="map"></div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  let map, pickupMarker, dropMarker, routePolyline;
+  let selectedVehicleType = "AUTO";
+  let selectedRate = 12;
+  let selectedBase = 30;
+
+  document.addEventListener("DOMContentLoaded", function() {
+    initMap();
+    initAutocomplete("pickup_input", "pickup_suggestions", true);
+    initAutocomplete("drop_input", "drop_suggestions", false);
+
+    // Initial calculation if locations exist
+    calculateFares(5.2, 15);
+  });
+
+  // ── MAP INITIALIZATION ──────────────────────────────────────────────────
+  function initMap() {
+    map = L.map('map').setView([12.9716, 77.5946], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Click map to set pickup & drop
+    let clickCount = 0;
+    map.on('click', function(e) {
+      if (clickCount % 2 === 0) {
+        setPickup(e.latlng.lat, e.latlng.lng, `Location (${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)})`);
+      } else {
+        setDrop(e.latlng.lat, e.latlng.lng, `Location (${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)})`);
+      }
+      clickCount++;
+    });
+  }
+
+  // ── CURRENT GPS LOCATION ────────────────────────────────────────────────
+  function useCurrentGPSLocation() {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      setPickup(lat, lng, "Current GPS Location");
+      map.setView([lat, lng], 15);
+    }, err => {
+      alert("Could not fetch location: " + err.message);
+    });
+  }
+
+  // ── SET PICKUP & DROP ───────────────────────────────────────────────────
+  function setPickup(lat, lng, address) {
+    document.getElementById("pickup_lat").value = lat;
+    document.getElementById("pickup_lng").value = lng;
+    document.getElementById("pickup_input").value = address;
+
+    if (pickupMarker) map.removeLayer(pickupMarker);
+    pickupMarker = L.marker([lat, lng], {
+      icon: L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+        iconSize: [25, 41], iconAnchor: [12, 41]
+      })
+    }).addTo(map).bindPopup("Pickup").openPopup();
+
+    updateRoute();
+  }
+
+  function setDrop(lat, lng, address) {
+    document.getElementById("drop_lat").value = lat;
+    document.getElementById("drop_lng").value = lng;
+    document.getElementById("drop_input").value = address;
+
+    if (dropMarker) map.removeLayer(dropMarker);
+    dropMarker = L.marker([lat, lng], {
+      icon: L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        iconSize: [25, 41], iconAnchor: [12, 41]
+      })
+    }).addTo(map).bindPopup("Drop").openPopup();
+
+    updateRoute();
+  }
+
+  // ── ROUTE & DISTANCE CALCULATION ───────────────────────────────────────
+  function updateRoute() {
+    const pLat = parseFloat(document.getElementById("pickup_lat").value);
+    const pLng = parseFloat(document.getElementById("pickup_lng").value);
+    const dLat = parseFloat(document.getElementById("drop_lat").value);
+    const dLng = parseFloat(document.getElementById("drop_lng").value);
+
+    if (pLat && pLng && dLat && dLng) {
+      // Calculate straight-line or OSRM distance
+      fetch(`https://router.project-osrm.org/route/v1/driving/${pLng},${pLat};${dLng},${dLat}?overview=full&geometries=geojson`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            const distKm = (route.distance / 1000).toFixed(1);
+            const durationMins = Math.round(route.duration / 60);
+
+            document.getElementById("calculated_distance").value = distKm;
+            document.getElementById("calculated_duration").value = durationMins;
+
+            document.getElementById("summary_dist").textContent = distKm + " km";
+            document.getElementById("summary_time").textContent = durationMins + " mins";
+
+            if (routePolyline) map.removeLayer(routePolyline);
+            routePolyline = L.geoJSON(route.geometry, {
+              style: { color: '#f59e0b', weight: 5, opacity: 0.8 }
+            }).addTo(map);
+
+            map.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
+
+            calculateFares(distKm, durationMins);
+          }
+        })
+        .catch(() => {
+          // Fallback Haversine calculation
+          const distKm = calculateHaversine(pLat, pLng, dLat, dLng).toFixed(1);
+  function setQuickDrop(address, lat, lng) {
+    document.getElementById("drop_input").value = address;
+    document.getElementById("drop_lat").value = lat;
+    document.getElementById("drop_lng").value = lng;
+    if (typeof setDrop === "function") {
+      setDrop(lat, lng, address);
+    } else {
+      recalculateRoute();
+    }
+  }
+
+  function switchRideCategory(category) {
+    document.getElementById("selected_category").value = category;
+    
+    const tabs = document.querySelectorAll("#ride_category_tabs button");
+    tabs.forEach(t => {
+      t.className = "nav-link text-white fw-bold rounded-3 py-2 px-1";
+    });
+    if (event && event.target) {
+      event.target.className = "nav-link active bg-warning text-dark fw-bold rounded-3 py-2 px-1";
+    }
+
+    const panel = document.getElementById("advanced_options_panel");
+    const optSched = document.getElementById("option_scheduled");
+    const optRent = document.getElementById("option_rental");
+    const optOut = document.getElementById("option_outstation");
+
+    panel.style.display = category === "DAILY_RIDE" ? "none" : "block";
+    optSched.style.display = category === "SCHEDULED" ? "block" : "none";
+    optRent.style.display = category === "RENTAL" ? "block" : "none";
+    optOut.style.display = category === "OUTSTATION" ? "block" : "none";
+
+    recalculateFare();
+  }
+
+  function recalculateFare() {
+    const distKm = parseFloat(document.getElementById("calculated_distance").value) || 5;
+    const duration = parseInt(document.getElementById("calculated_duration").value) || 15;
+    calculateFares(distKm, duration);
+  }
+
+  function calculateFares(distKm, durationMins) {
+    const pickup = document.getElementById("pickup_input").value.trim();
+    const drop   = document.getElementById("drop_input").value.trim();
+    const category = document.getElementById("selected_category").value;
+    const rentalPkg = document.getElementById("rental_package_select") ? document.getElementById("rental_package_select").value : "";
+    const outType = document.getElementById("outstation_type_select") ? document.getElementById("outstation_type_select").value : "ONE_WAY";
+
+    fetch("/booking/api/calculate-fare/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+      body: JSON.stringify({
+        vehicle_type: selectedVehicleType,
+        distance: distKm,
+        duration: durationMins,
+        pickup: pickup,
+        drop: drop,
+        coupon: activeCouponCode,
+        booking_category: category,
+        rental_package: rentalPkg,
+        outstation_type: outType
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.fare_details) {
+        const details = data.fare_details;
+
+        // Dynamically update fares on all vehicle cards in DOM
+        document.querySelectorAll(".ride-card").forEach(card => {
+          const type = card.dataset.type;
+          const rate = parseFloat(card.dataset.rate) || 15;
+          const base = parseFloat(card.dataset.base) || 40;
+          const calculatedCardFare = Math.round((base + (distKm * rate)) * details.surge_multiplier);
+          const el = document.getElementById("fare_" + type);
+          if (el) el.textContent = "₹" + calculatedCardFare;
+        });
+
+        // Update Dynamic Fare Breakdown Box
+        document.getElementById("fb_base").textContent    = "₹" + details.base_fare.toFixed(2);
+        document.getElementById("fb_dist_km").textContent = distKm;
+        document.getElementById("fb_dist").textContent    = "₹" + details.distance_fare.toFixed(2);
+        document.getElementById("fb_time_min").textContent= durationMins;
+        document.getElementById("fb_time").textContent    = "₹" + details.time_fare.toFixed(2);
+
+        // Surge Badge
+        const surgeBadge = document.getElementById("surge_badge");
+        if (details.surge_multiplier > 1.0) {
+          surgeBadge.style.display = "inline-block";
+          surgeBadge.textContent = "⚡ " + details.surge_multiplier.toFixed(2) + "x Surge";
+        } else {
+          surgeBadge.style.display = "none";
+        }
+
+        // Night Row
+        const nightRow = document.getElementById("fb_night_row");
+        if (details.is_night) {
+          nightRow.style.display = "flex";
+          document.getElementById("fb_night").textContent = "₹" + details.night_charge.toFixed(2);
+        } else { nightRow.style.display = "none"; }
+
+        // Airport Row
+        const airportRow = document.getElementById("fb_airport_row");
+        if (details.is_airport) {
+          airportRow.style.display = "flex";
+          document.getElementById("fb_airport").textContent = "₹" + details.airport_charge.toFixed(2);
+        } else { airportRow.style.display = "none"; }
+
+        // Discount Row
+        const discountRow = document.getElementById("fb_discount_row");
+        if (details.discount_amount > 0) {
+          discountRow.style.display = "flex";
+          document.getElementById("fb_discount").textContent = "-₹" + details.discount_amount.toFixed(2);
+        } else { discountRow.style.display = "none"; }
+
+        document.getElementById("fb_total").textContent = "₹" + details.total_fare.toFixed(2);
+      }
+    })
+    .catch(err => console.warn("Pricing calculation error", err));
+  }
+
+  let activeCouponCode = "";
+
+  function applyCoupon() {
+    const code = document.getElementById("coupon_input").value.trim();
+    const msg = document.getElementById("coupon_msg");
+
+    if (!code) {
+      msg.style.display = "block";
+      msg.className = "small mt-1 text-danger";
+      msg.textContent = "Please enter a promo code.";
+      return;
+    }
+
+    activeCouponCode = code;
+    const distKm = parseFloat(document.getElementById("calculated_distance").value) || 5;
+    const duration = parseInt(document.getElementById("calculated_duration").value) || 15;
+
+    calculateFares(distKm, duration);
+
+    msg.style.display = "block";
+    msg.className = "small mt-1 text-success";
+    msg.textContent = `Promo code "${code}" applied! Calculating discount...`;
+  }
+
+  function selectRideType(element, type, rate, base) {
+    document.querySelectorAll(".ride-card").forEach(c => c.classList.remove("active"));
+    element.classList.add("active");
+    selectedVehicleType = type;
+    selectedRate = rate;
+    selectedBase = base;
+
+    const distKm = parseFloat(document.getElementById("calculated_distance").value) || 5;
+    const duration = parseInt(document.getElementById("calculated_duration").value) || 15;
+    calculateFares(distKm, duration);
+  }
+
+  function calculateHaversine(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function initAutocomplete(inputId, suggestionsId, isPickup) {
+    const input = document.getElementById(inputId);
+    const box = document.getElementById(suggestionsId);
+    let timer;
+
+    input.addEventListener("input", function() {
+      clearTimeout(timer);
+      const q = this.value.trim();
+      if (q.length < 3) { box.style.display = "none"; return; }
+
+      timer = setTimeout(() => {
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=in&limit=5`)
+          .then(r => r.json())
+          .then(data => {
+            box.innerHTML = "";
+            if (data.length > 0) {
+              box.style.display = "block";
+              data.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "suggestion-item";
+                div.textContent = item.display_name;
+                div.onclick = () => {
+                  const lat = parseFloat(item.lat);
+                  const lng = parseFloat(item.lon);
+                  if (isPickup) setPickup(lat, lng, item.display_name);
+                  else setDrop(lat, lng, item.display_name);
+                  box.style.display = "none";
+                };
+                box.appendChild(div);
+              });
+            } else { box.style.display = "none"; }
+          });
+      }, 350);
+    });
+  }
+
+  function submitBooking() {
+    const pickup = document.getElementById("pickup_input").value.trim();
+    const drop   = document.getElementById("drop_input").value.trim();
+    const category = document.getElementById("selected_category").value;
+
+    if (!pickup || !drop) {
+      alert("Please specify both pickup and drop locations.");
+      return;
+    }
+
+    const distKm = parseFloat(document.getElementById("calculated_distance").value) || 5;
+    const duration = parseInt(document.getElementById("calculated_duration").value) || 15;
+
+    const payload = {
+      pickup_location: pickup,
+      drop_location: drop,
+      pickup_lat: parseFloat(document.getElementById("pickup_lat").value) || 12.9716,
+      pickup_lng: parseFloat(document.getElementById("pickup_lng").value) || 77.5946,
+      drop_lat: parseFloat(document.getElementById("drop_lat").value) || 12.9352,
+      drop_lng: parseFloat(document.getElementById("drop_lng").value) || 77.6245,
+      vehicle_type: selectedVehicleType || "MINI",
+      distance: distKm,
+      estimated_duration: duration,
+      coupon_code: activeCouponCode,
+      booking_category: category,
+      scheduled_datetime: document.getElementById("scheduled_datetime_input") ? document.getElementById("scheduled_datetime_input").value : null,
+      rental_package: document.getElementById("rental_package_select") ? document.getElementById("rental_package_select").value : "",
+      outstation_type: document.getElementById("outstation_type_select") ? document.getElementById("outstation_type_select").value : "ONE_WAY",
+      payment_method: document.getElementById("payment_method").value
+    };
+
+    const btn = document.getElementById("book_ride_btn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Creating ${category} Booking...`;
+
+    fetch("/booking/api/create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken")
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        alert(data.error || data.message || "Failed to create booking.");
+        btn.disabled = false;
+        btn.innerHTML = `<i class="bi bi-lightning-charge-fill me-2"></i>CONFIRM & BOOK RIDE`;
+      }
+    })
+    .catch(err => {
+      alert("Network error. Please try again.");
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-lightning-charge-fill me-2"></i>CONFIRM & BOOK RIDE`;
+    });
+  }
+
+  function getCookie(name) {
+    return document.cookie.split(";").map(c => c.trim())
+      .find(c => c.startsWith(name + "="))?.split("=")[1] || "";
+  }
+
+  // Live Nearby Driver Map Radar & Waypoints
+  let nearbyDriverMarkers = [];
+  function loadNearbyDriverRadar() {
+    const pLat = parseFloat(document.getElementById("pickup_lat").value) || 12.9716;
+    const pLng = parseFloat(document.getElementById("pickup_lng").value) || 77.5946;
+
+    fetch(`/booking/api/nearby-drivers/?lat=${pLat}&lng=${pLng}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.drivers) {
+          nearbyDriverMarkers.forEach(m => map.removeLayer(m));
+          nearbyDriverMarkers = [];
+
+          data.drivers.forEach(d => {
+            const m = L.marker([d.lat, d.lng], {
+              icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                iconSize: [22, 35]
+              })
+            }).addTo(map).bindPopup(`🚖 ${d.name} (${d.rating} ★)`);
+            nearbyDriverMarkers.push(m);
+          });
+        }
+      });
+  }
+
+  setInterval(loadNearbyDriverRadar, 10000);
+  setTimeout(loadNearbyDriverRadar, 2000);
+
+  let waypointCount = 0;
+  function addWaypointField() {
+    if (waypointCount >= 2) {
+      alert("Maximum 2 intermediate stops allowed.");
+      return;
+    }
+    waypointCount++;
+    const container = document.getElementById("waypoints_container");
+    const div = document.createElement("div");
+    div.className = "mb-3 position-relative";
+    div.id = `waypoint_wrap_${waypointCount}`;
+    div.innerHTML = `
+      <label class="form-label fw-bold small text-warning">STOP ${waypointCount} (WAYPOINT)</label>
+      <div class="input-group">
+        <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-geo-fill"></i></span>
+        <input type="text" id="waypoint_${waypointCount}" class="form-control bg-dark text-white border-secondary"
+               placeholder="Enter stop location address" autocomplete="off">
+        <button class="btn btn-outline-danger" type="button" onclick="removeWaypointField(${waypointCount})">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function removeWaypointField(id) {
+    const el = document.getElementById(`waypoint_wrap_${id}`);
+    if (el) el.remove();
+    waypointCount--;
+  }
+</script>
+{% endblock %}

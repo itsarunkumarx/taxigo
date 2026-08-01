@@ -1,0 +1,815 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tracking Ride #{{ booking.id }} — Taxigo Live Radar{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #f59e0b;
+    --primary-dark: #d97706;
+    --bg-dark: #090d16;
+    --card-bg: rgba(30, 41, 59, 0.8);
+  }
+
+  body {
+    background: #070a12 !important;
+    color: #f8fafc !important;
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
+
+  /* High contrast text overrides */
+  .txt-muted { color: #cbd5e1 !important; }
+  .txt-white { color: #ffffff !important; }
+  .txt-gold  { color: #f59e0b !important; }
+  .txt-green { color: #10b981 !important; }
+
+  /* ── Glassmorphism & Animated Glow Cards ─────────────────────────── */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  }
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 45px rgba(0, 0, 0, 0.6), 0 0 25px rgba(245, 158, 11, 0.1);
+  }
+
+  /* ── Live Equalizer Spectrum Bars ────────────────────────────────── */
+  .live-eq-wrap {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+  }
+  .live-eq-bar {
+    width: 3px;
+    background: #f59e0b;
+    border-radius: 3px;
+    animation: eqBounce 1.2s ease-in-out infinite alternate;
+  }
+  .live-eq-bar:nth-child(1) { height: 60%; animation-delay: 0.1s; }
+  .live-eq-bar:nth-child(2) { height: 100%; animation-delay: 0.3s; }
+  .live-eq-bar:nth-child(3) { height: 40%; animation-delay: 0.5s; }
+  .live-eq-bar:nth-child(4) { height: 80%; animation-delay: 0.2s; }
+  @keyframes eqBounce {
+    0% { height: 25%; }
+    100% { height: 100%; }
+  }
+
+  /* ── Status Horizontal Stepper ────────────────────────────────────── */
+  .status-track {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    padding: 24px 12px;
+    background: linear-gradient(135deg, #0f172a 0%, #172136 100%);
+    border-radius: 24px;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(245,158,11,0.08);
+  }
+  .step-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    position: relative;
+    flex: 1;
+    text-align: center;
+  }
+  .step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    width: 100%;
+    height: 4px;
+    background: #334155;
+    border-radius: 2px;
+    z-index: 0;
+    transition: background 0.5s ease;
+  }
+  .step-item.completed::after { background: linear-gradient(90deg, #10b981, #059669); }
+  .step-item.active::after { background: linear-gradient(90deg, #f59e0b, #d97706); }
+
+  .step-dot {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 3px solid #475569;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: all .4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    position: relative;
+    color: #ffffff;
+  }
+  .step-item.active .step-dot {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #f59e0b;
+    box-shadow: 0 0 24px rgba(245,158,11,0.8);
+    animation: pulseGlow 1.8s infinite ease-in-out;
+  }
+  .step-item.completed .step-dot {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+    box-shadow: 0 0 16px rgba(16,185,129,0.6);
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(245,158,11,0.6); }
+    50% { transform: scale(1.12); box-shadow: 0 0 28px rgba(245,158,11,0.9); }
+  }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #cbd5e1 !important;
+    margin-top: 12px;
+    text-align: center;
+    line-height: 1.2;
+    z-index: 2;
+  }
+  .step-item.active .step-label { color: #f59e0b !important; font-weight: 800; text-shadow: 0 0 10px rgba(245,158,11,0.4); }
+  .step-item.completed .step-label { color: #10b981 !important; }
+
+  /* ── Map Container ────────────────────────────────────────────────── */
+  #live-map {
+    width: 100%; height: 410px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: #0f172a;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  }
+
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .badge-searching { background: rgba(245,158,11,.15); color: #f59e0b; border: 1px solid #f59e0b; }
+  .badge-assigned  { background: rgba(16,185,129,.15); color: #10b981; border: 1px solid #10b981; }
+  .badge-trip      { background: rgba(59,130,246,.15); color: #3b82f6; border: 1px solid #3b82f6; }
+  .badge-done      { background: rgba(16,185,129,.25); color: #10b981; border: 1px solid #10b981; }
+
+  .driver-avatar {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 20px rgba(245,158,11,0.5);
+    animation: avatarPulse 2s infinite alternate;
+  }
+  @keyframes avatarPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.06); }
+  }
+
+  /* ── Shimmering Gold OTP Box ──────────────────────────────────────── */
+  .otp-glow-box {
+    position: relative;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 20px;
+    padding: 16px;
+    border: 2px dashed #f59e0b;
+    box-shadow: 0 0 20px rgba(245,158,11,0.2);
+    overflow: hidden;
+  }
+  .otp-glow-box::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(60deg, transparent, rgba(245,158,11,0.15), transparent);
+    transform: rotate(30deg);
+    animation: shimmerSweep 3s infinite;
+  }
+  @keyframes shimmerSweep {
+    0% { transform: translateX(-100%) rotate(30deg); }
+    100% { transform: translateX(100%) rotate(30deg); }
+  }
+
+  .otp-display {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: 12px;
+    color: #f59e0b;
+    text-shadow: 0 0 15px rgba(245,158,11,0.6);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Animated Radar Sonar ─────────────────────────────────────────── */
+  .radar-wrap {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    background: rgba(245,158,11,0.1);
+    border: 3px solid #f59e0b;
+    margin: 0 auto;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 30px rgba(245,158,11,0.3);
+  }
+  .radar-ripple-1, .radar-ripple-2 {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 2px solid #f59e0b;
+    opacity: 0;
+  }
+  .radar-ripple-1 { animation: sonarExpand 2s infinite ease-out; }
+  .radar-ripple-2 { animation: sonarExpand 2s infinite ease-out 0.8s; }
+  @keyframes sonarExpand {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 2px solid #ef4444;
+    color: #ef4444;
+    border-radius: 50px;
+    padding: 10px 32px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all .3s;
+  }
+  .btn-cancel:hover { background: #ef4444; color: white; box-shadow: 0 0 20px rgba(239,68,68,0.5); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="background-color: #070a12; min-height: 100vh; color: #f8fafc;" class="py-4">
+<div class="container" style="max-width:1080px;">
+
+  <!-- Header Section with Live Spectrum & SOS -->
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <a href="/booking/" class="text-white text-decoration-none">
+      <i class="bi bi-arrow-left-circle-fill fs-2 text-warning" style="transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
+    </a>
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <h2 class="h4 mb-0 fw-bold text-white">Live Ride Tracking</h2>
+        <div class="live-eq-wrap ms-1">
+          <span class="live-eq-bar"></span>
+          <span class="live-eq-bar"></span>
+          <span class="live-eq-bar"></span>
+          <span class="live-eq-bar"></span>
+        </div>
+      </div>
+      <p class="mb-0 txt-muted small">Booking <code class="text-warning fw-bold fs-6">#{{ booking.id }}</code></p>
+    </div>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <button onclick="sharePublicRideLink()" class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3">
+        <i class="bi bi-share-fill me-1"></i> Share Ride
+      </button>
+      <button onclick="triggerEmergencySOS()" class="btn btn-danger btn-sm rounded-pill fw-bold px-3 shadow-lg">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> SOS Emergency
+      </button>
+      <span id="badge-status" class="badge-status {% if booking.status == 'DRIVER_ASSIGNED' %}badge-assigned{% else %}badge-searching{% endif %}">
+        {% if booking.status == 'DRIVER_ASSIGNED' %}✅ Driver Found{% else %}🔍 Searching Driver{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Animated Horizontal Stepper Tracker -->
+  <div class="mb-4">
+    <div class="status-track">
+      {% for step in steps %}
+      <div class="step-item {% if step.active %}active{% endif %} {% if step.completed %}completed{% endif %}" id="step-{{ step.key }}">
+        <div class="step-dot">{{ step.icon }}</div>
+        <div class="step-label">{{ step.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Map & Dynamic Metrics -->
+    <div class="col-lg-7">
+      <div class="glass-card p-0 overflow-hidden mb-3">
+        <div id="live-map">
+          <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;">
+            <div class="text-center">
+              <div class="radar-wrap mb-3">
+                <div class="radar-ripple-1"></div>
+                <div class="radar-ripple-2"></div>
+                <span class="fs-1">🚕</span>
+              </div>
+              <p class="mt-3 text-white fw-bold">Connecting to live GPS map...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animated Trip Details Card -->
+      <div class="glass-card">
+        <div class="row g-3 mb-3 pb-3 border-bottom border-secondary">
+          <div class="col-sm-6">
+            <div class="d-flex align-items-start gap-3">
+              <span class="fs-4">🟡</span>
+              <div>
+                <span class="txt-muted small d-block fw-semibold">PICKUP LOCATION</span>
+                <strong class="text-white small d-block">{{ booking.pickup_address|default:booking.pickup_location }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex align-items-start gap-3">
+              <span class="fs-4">🔴</span>
+              <div>
+                <span class="txt-muted small d-block fw-semibold">DROP DESTINATION</span>
+                <strong class="text-white small d-block">{{ booking.drop_address|default:booking.drop_location }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2 text-center">
+          <div class="col-4">
+            <div class="p-3 rounded-4" style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255,255,255,0.08);">
+              <span class="txt-muted small d-block">Distance</span>
+              <strong class="text-white fs-6">{{ booking.distance|floatformat:1 }} km</strong>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 rounded-4" style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255,255,255,0.08);">
+              <span class="txt-muted small d-block">Est. Time</span>
+              <strong class="text-white fs-6">{{ booking.estimated_duration|default:"--" }} min</strong>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 rounded-4" style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255,255,255,0.08);">
+              <span class="txt-muted small d-block">Total Fare</span>
+              <strong class="text-warning fs-5">₹{{ booking.total_fare|default:booking.fare|floatformat:0 }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Driver Cards & Interactive Panels -->
+    <div class="col-lg-5">
+
+      <!-- Panel A: Searching Driver with Pulse Animation -->
+      <div id="panel-searching" class="glass-card text-center" style="{% if booking.status == 'DRIVER_ASSIGNED' or booking.status == 'TRIP_STARTED' or booking.status == 'TRIP_COMPLETED' or booking.driver %}display:none;{% endif %}">
+        <div class="radar-wrap my-3">
+          <div class="radar-ripple-1"></div>
+          <div class="radar-ripple-2"></div>
+          <span class="fs-1">🚖</span>
+        </div>
+        <h5 class="text-white mt-4 fw-bold">Finding Your Driver</h5>
+        <p class="txt-muted small">Searching for high-priority nearby drivers...</p>
+        <div class="d-flex justify-content-center gap-2 my-3">
+          <span class="spinner-grow spinner-grow-sm text-warning"></span>
+          <span class="spinner-grow spinner-grow-sm text-warning" style="animation-delay:.15s;"></span>
+          <span class="spinner-grow spinner-grow-sm text-warning" style="animation-delay:.3s;"></span>
+        </div>
+        {% if booking.status == "SEARCHING_DRIVER" or booking.status == "NO_DRIVER_FOUND" or booking.status == "PENDING" %}
+        <button class="btn-cancel mt-3" onclick="cancelBooking()">Cancel Booking</button>
+        {% endif %}
+      </div>
+
+      <!-- Panel B: Driver Assigned Card -->
+      <div id="panel-driver" class="glass-card" style="{% if booking.status == 'DRIVER_ASSIGNED' or booking.driver %}display:block;{% else %}display:none;{% endif %}">
+        <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary">
+          <div class="driver-avatar">🧑‍✈️</div>
+          <div>
+            <h5 id="driver-name" class="mb-1 fw-bold text-white">{{ booking.driver.full_name|default:"Driver Assigned" }}</h5>
+            <div class="txt-muted small">
+              <span id="driver-vehicle" class="me-2 text-warning fw-bold">{{ booking.vehicle.name|default:"Taxigo Cab" }}</span>
+              <span id="driver-rating" class="badge bg-dark border border-warning text-warning">⭐ {{ booking.driver.rating_score|default:"4.9" }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
+              <span class="txt-muted small d-block">Driver ETA</span>
+              <strong id="driver-eta" class="text-white fs-6">5 min</strong>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
+              <span class="txt-muted small d-block">Live Speed</span>
+              <strong id="driver-speed" class="text-white fs-6">35 km/h</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animated Shimmering OTP Box -->
+        <div class="otp-glow-box text-center mb-3">
+          <span class="txt-muted small d-block mb-2 fw-semibold position-relative z-1">Share this OTP with driver to start ride</span>
+          <div class="otp-display">{{ booking.otp|default:"748291" }}</div>
+          <small class="txt-muted d-block mt-2 position-relative z-1" style="font-size:11px;"><i class="bi bi-shield-lock me-1"></i>Keep this OTP private until driver arrives</small>
+        </div>
+
+        <!-- Driver Chat Box -->
+        <div class="p-3 rounded-4 mb-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
+          <label class="fw-bold small text-warning mb-2 d-block"><i class="bi bi-chat-dots-fill me-1"></i>QUICK CHAT WITH DRIVER</label>
+          <div class="d-flex gap-1 overflow-x-auto pb-2 mb-2">
+            <button type="button" onclick="sendPresetChat('I am standing at the main gate')" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" style="font-size:11px;">🚪 Main Gate</button>
+            <button type="button" onclick="sendPresetChat('Please turn on the AC')" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" style="font-size:11px;">❄️ Turn on AC</button>
+            <button type="button" onclick="sendPresetChat('Please wait 2 mins')" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" style="font-size:11px;">⏳ Wait 2 mins</button>
+          </div>
+          <div class="input-group input-group-sm">
+            <input type="text" id="chat_msg_input" class="form-control bg-dark text-white border-secondary" placeholder="Message driver...">
+            <button class="btn btn-warning fw-bold text-dark" type="button" onclick="sendCustomChat()"><i class="bi bi-send-fill"></i></button>
+          </div>
+          <div id="chat_history" class="mt-2 text-start small txt-muted" style="max-height:80px; overflow-y:auto;"></div>
+        </div>
+
+        <a href="tel:{{ booking.driver.mobile|default:'+919876543210' }}" class="btn btn-warning w-100 fw-bold rounded-pill py-2 shadow-lg text-dark" id="driver-call-btn">
+          📞 Call Driver
+        </a>
+      </div>
+
+      <!-- Panel C: Trip Active Card -->
+      <div id="panel-trip" class="glass-card text-center" style="{% if booking.status == 'TRIP_STARTED' or booking.status == 'On Ride' %}display:block;{% else %}display:none;{% endif %}">
+        <div class="alert alert-success border-0 rounded-4 p-3 mb-3" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+          <h6 class="fw-bold mb-1">🟢 OTP Verified Successfully!</h6>
+          <p class="small mb-0 opacity-90">Your trip is active and in progress. Enjoy your ride!</p>
+        </div>
+        <div style="font-size:60px;" class="my-2">🛣️</div>
+        <h5 class="text-white fw-bold mt-2">Trip in Progress</h5>
+        <p class="txt-muted small">Driver: <strong class="text-warning">{{ booking.driver.full_name|default:"Taxigo Driver" }}</strong> | Vehicle: <strong class="text-white">{{ booking.vehicle.name|default:"Taxigo Cab" }}</strong></p>
+
+        <div class="row g-2 mt-3">
+          <div class="col-6">
+            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
+              <span class="txt-muted small d-block">Distance</span>
+              <strong class="text-warning fs-5">{{ booking.distance|floatformat:1 }} km</strong>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
+              <span class="txt-muted small d-block">Trip Fare</span>
+              <strong class="text-success fs-5">₹{{ booking.total_fare|default:booking.fare|floatformat:0 }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel D: Trip Completed Card -->
+      <div id="panel-done" class="glass-card text-center" style="{% if booking.status == 'TRIP_COMPLETED' or booking.status == 'Completed' %}display:block;{% else %}display:none;{% endif %}">
+        <div class="alert alert-success border-0 rounded-4 p-3 mb-3" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+          <h5 class="fw-bold mb-1">🎉 Thank You for Riding with Taxigo!</h5>
+          <p class="small mb-0 opacity-90">Your trip has been completed successfully.</p>
+        </div>
+
+        <div class="p-3 rounded-4 mb-3 text-start" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
+          <h6 class="fw-bold text-warning mb-3 border-bottom border-secondary pb-2"><i class="bi bi-receipt me-2"></i>Trip Receipt Summary</h6>
+          <div class="d-flex justify-content-between mb-2 small txt-muted">
+            <span>Pickup:</span>
+            <span class="text-white fw-medium text-truncate ms-2" style="max-width:200px;">{{ booking.pickup_location }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 small txt-muted">
+            <span>Destination:</span>
+            <span class="text-white fw-medium text-truncate ms-2" style="max-width:200px;">{{ booking.drop_location }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 small txt-muted">
+            <span>Distance:</span>
+            <span class="text-white fw-medium">{{ booking.distance|floatformat:1 }} km</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 small txt-muted">
+            <span>Payment Status:</span>
+            <span class="badge bg-success text-white">PAID</span>
+          </div>
+          <hr class="border-secondary my-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-white fs-6">Total Fare Paid:</span>
+            <span class="fw-bold text-warning fs-4">₹{{ booking.total_fare|default:booking.fare|floatformat:0 }}</span>
+          </div>
+        </div>
+
+        <h6 class="text-white fw-bold mb-2">⭐ How was your driver, {{ booking.driver.full_name|default:"Taxigo Driver" }}?</h6>
+        <p class="txt-muted small mb-3">Rate your experience to help us maintain top service quality</p>
+        
+        <div class="d-flex justify-content-center gap-2 mb-3" id="star-rating">
+          {% for i in "12345" %}
+          <button onclick="rateDriver({{ i }})"
+                  class="btn btn-sm rounded-circle shadow-sm"
+                  style="width:48px;height:48px;background:#0f172a;border:2px solid #f59e0b;color:#f59e0b;font-size:22px;transition:all 0.2s;"
+                  id="star-{{ i }}"
+                  onmouseover="this.style.transform='scale(1.3)'; this.style.boxShadow='0 0 20px rgba(245,158,11,0.8)';"
+                  onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">⭐</button>
+          {% endfor %}
+        </div>
+
+        <a href="/booking/" class="btn btn-warning w-100 fw-bold rounded-pill py-2 shadow-lg mt-2 text-dark">
+          <i class="bi bi-check-circle-fill me-2"></i>Done & View Bookings
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/taxigo-ws.js' %}"></script>
+<script>
+  const tracker = new TaxigoWS.BookingTracker("{{ booking.id }}");
+  let map, driverMarker, pickupMarker, dropMarker;
+
+  function initMap() {
+    const pickupCoords = {
+      lat: {{ booking.pickup_lat|default:12.9716 }},
+      lng: {{ booking.pickup_lng|default:77.5946 }},
+    };
+    const dropCoords = {
+      lat: {{ booking.drop_lat|default:12.9352 }},
+      lng: {{ booking.drop_lng|default:77.6245 }},
+    };
+
+    map = new google.maps.Map(document.getElementById("live-map"), {
+      center: pickupCoords,
+      zoom: 14,
+      styles: darkMapStyle,
+      disableDefaultUI: true,
+      zoomControl: true,
+    });
+
+    pickupMarker = new google.maps.Marker({
+      position: pickupCoords,
+      map, title: "Pickup",
+      icon: { url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png" }
+    });
+
+    dropMarker = new google.maps.Marker({
+      position: dropCoords,
+      map, title: "Drop",
+      icon: { url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png" }
+    });
+
+    const ds = new google.maps.DirectionsService();
+    const dr = new google.maps.DirectionsRenderer({ map, suppressMarkers: true,
+      polylineOptions: { strokeColor: "#f59e0b", strokeWeight: 5 }
+    });
+    ds.route({
+      origin: pickupCoords,
+      destination: dropCoords,
+      travelMode: google.maps.TravelMode.DRIVING,
+    }, (result, status) => { if (status === "OK") dr.setDirections(result); });
+  }
+
+  tracker.onDriverLocation = (lat, lng, heading, data) => {
+    const pos = { lat, lng };
+    if (!driverMarker) {
+      driverMarker = new google.maps.Marker({
+        position: pos, map,
+        title: "Driver",
+        icon: {
+          url: "data:image/svg+xml," + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="20" fill="#f59e0b" stroke="white" stroke-width="2"/>
+              <text x="22" y="28" text-anchor="middle" font-size="20">🚕</text>
+            </svg>`),
+          scaledSize: new google.maps.Size(44, 44),
+          anchor:     new google.maps.Point(22, 22),
+        }
+      });
+    } else {
+      driverMarker.setPosition(pos);
+    }
+    const speedEl = document.getElementById("driver-speed");
+    if (speedEl) speedEl.textContent = data.speed ? Math.round(data.speed) + " km/h" : "-- km/h";
+  };
+
+  const panels = {
+    "SEARCHING_DRIVER": "panel-searching",
+    "NO_DRIVER_FOUND":  "panel-searching",
+    "DRIVER_ASSIGNED":  "panel-driver",
+    "DRIVER_COMING":    "panel-driver",
+    "DRIVER_ARRIVED":   "panel-driver",
+    "TRIP_STARTED":     "panel-trip",
+    "TRIP_COMPLETED":   "panel-done",
+  };
+
+  const badgeClasses = {
+    "SEARCHING_DRIVER": ["badge-searching", "🔍 Searching Driver"],
+    "DRIVER_ASSIGNED":  ["badge-assigned",  "✅ Driver Found"],
+    "DRIVER_COMING":    ["badge-assigned",  "🚗 Driver Coming"],
+    "DRIVER_ARRIVED":   ["badge-assigned",  "📍 Driver Arrived"],
+    "TRIP_STARTED":     ["badge-trip",      "🛣️ Trip Started"],
+    "TRIP_COMPLETED":   ["badge-done",      "🏁 Completed"],
+  };
+
+  tracker.onStatusChange = (status, data) => {
+    Object.values(panels).forEach(p => {
+      const el = document.getElementById(p);
+      if (el) el.style.display = "none";
+    });
+    const target = panels[status];
+    if (target) document.getElementById(target).style.display = "block";
+
+    const [cls, label] = badgeClasses[status] || ["badge-searching", status];
+    const badge = document.getElementById("badge-status");
+    if (badge) {
+      badge.className = `badge-status ${cls}`;
+      badge.textContent = label;
+    }
+
+    if (data.driver_name)  document.getElementById("driver-name").textContent  = data.driver_name;
+    if (data.driver_vehicle) document.getElementById("driver-vehicle").textContent = data.driver_vehicle;
+    if (data.driver_rating)  document.getElementById("driver-rating").textContent  = "⭐ " + data.driver_rating;
+    if (data.phone) document.getElementById("driver-call-btn").href = "tel:" + data.phone;
+  };
+
+  let currentRideStatus = "{{ booking.status }}";
+
+  function checkBookingStatusRealtime() {
+    fetch(`/booking/api/status/{{ booking.id }}/`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.status) {
+          if (data.status !== currentRideStatus) {
+            currentRideStatus = data.status;
+            if (tracker && tracker.onStatusChange) {
+              tracker.onStatusChange(data.status, {
+                driver_name: data.driver?.name,
+                driver_vehicle: data.driver?.vehicle,
+                driver_rating: data.driver?.rating,
+                phone: data.driver?.phone
+              });
+            }
+          }
+        }
+      })
+      .catch(err => console.log(err));
+  }
+
+  setInterval(checkBookingStatusRealtime, 2000);
+
+  function sendPresetChat(text) { postChatMessage(text); }
+
+  function sendCustomChat() {
+    const input = document.getElementById("chat_msg_input");
+    const txt = input.value.trim();
+    if (!txt) return;
+    postChatMessage(txt);
+    input.value = "";
+  }
+
+  function postChatMessage(msg) {
+    fetch("/booking/api/chat/send/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+      body: JSON.stringify({ booking_id: "{{ booking.id }}", message: msg, sender: "CUSTOMER" })
+    })
+    .then(r => r.json())
+    .then(data => { if (data.success) loadChatMessages(); })
+    .catch(err => console.log(err));
+  }
+
+  function loadChatMessages() {
+    fetch(`/booking/api/chat/messages/{{ booking.id }}/`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.messages) {
+          const box = document.getElementById("chat_history");
+          if (!box) return;
+          box.innerHTML = "";
+          data.messages.forEach(m => {
+            const isMe = m.sender === "CUSTOMER";
+            const div = document.createElement("div");
+            div.className = "mb-1 text-start";
+            div.innerHTML = `<span class="badge ${isMe ? 'bg-warning text-dark' : 'bg-primary text-white'} me-1">${isMe ? 'You' : m.sender_name}:</span><span class="text-white">${m.message}</span> <small class="txt-muted ms-1" style="font-size:9px;">${m.time}</small>`;
+            box.appendChild(div);
+          });
+          box.scrollTop = box.scrollHeight;
+        }
+      })
+      .catch(err => console.log(err));
+  }
+
+  setInterval(loadChatMessages, 2500);
+  loadChatMessages();
+
+  function rateDriver(stars) {
+    const comment = prompt("Leave a review for your driver (optional):") || "";
+    fetch("/booking/api/rate-driver/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+      body: JSON.stringify({ booking_id: "{{ booking.id }}", rating: stars, comment }),
+    }).then(r => r.json()).then(d => {
+      if (d.success) {
+        alert("Thanks for rating your driver " + stars + " Stars! ⭐");
+        document.getElementById("star-rating").innerHTML = `<div class="alert alert-success border-0 py-2 px-4 rounded-pill">Rated ${stars} Stars! Thank you for your feedback.</div>`;
+      }
+    });
+  }
+
+  function triggerEmergencySOS() {
+    if (!confirm("🚨 Are you sure you want to trigger Emergency SOS?\n\nThis will send an immediate high-priority alert with your exact GPS coordinates to Admin Operations & Emergency Response.")) return;
+    fetch("/booking/api/sos/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+      body: JSON.stringify({
+        booking_id: "{{ booking.id }}",
+        lat: {{ booking.pickup_lat|default:0 }},
+        lng: {{ booking.pickup_lng|default:0 }},
+        address: "{{ booking.pickup_location|escapejs }}"
+      })
+    }).then(r => r.json()).then(data => { alert(data.message || "🚨 Emergency SOS alert triggered!"); });
+  }
+
+  function sharePublicRideLink() {
+    const shareToken = "{{ booking.share_token }}";
+    const shareUrl = `${window.location.origin}/booking/track/share/${shareToken}/`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert("Public Live Tracking Link copied to clipboard:\n\n" + shareUrl);
+    }).catch(() => {
+      prompt("Copy your Public Live Tracking Link below:", shareUrl);
+    });
+  }
+
+  function cancelBooking() {
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+    fetch("/booking/cancel/{{ booking.id }}/", {
+      method: "POST",
+      headers: { "X-CSRFToken": getCookie("csrftoken") },
+    }).then(() => window.location.href = "/booking/");
+  }
+
+  function getCookie(name) {
+    return document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(name + "="))?.split("=")[1] || "";
+  }
+
+  const darkMapStyle = [
+    { elementType: "geometry",   stylers: [{ color: "#0f172a" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
+    { elementType: "labels.text.fill",   stylers: [{ color: "#94a3b8" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1e293b" }] },
+    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#334155" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0c1a2e" }] },
+    { featureType: "poi", stylers: [{ visibility: "off" }] },
+  ];
+</script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  function initLeafletFallbackMap() {
+    const mapDiv = document.getElementById("live-map");
+    if (!mapDiv) return;
+    mapDiv.innerHTML = "";
+
+    const pLat = {{ booking.pickup_lat|default:12.9716 }};
+    const pLng = {{ booking.pickup_lng|default:77.5946 }};
+    const dLat = {{ booking.drop_lat|default:12.9352 }};
+    const dLng = {{ booking.drop_lng|default:77.6245 }};
+
+    const lMap = L.map('live-map').setView([pLat, pLng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(lMap);
+
+    L.marker([pLat, pLng], {
+      icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png', iconSize: [25, 41] })
+    }).addTo(lMap).bindPopup("Pickup: {{ booking.pickup_location|escapejs }}");
+
+    L.marker([dLat, dLng], {
+      icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41] })
+    }).addTo(lMap).bindPopup("Drop: {{ booking.drop_location|escapejs }}");
+
+    fetch(`https://router.project-osrm.org/route/v1/driving/${pLng},${pLat};${dLng},${dLat}?overview=full&geometries=geojson`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.routes && data.routes.length > 0) {
+          const poly = L.geoJSON(data.routes[0].geometry, { style: { color: '#f59e0b', weight: 5, opacity: 0.85 } }).addTo(lMap);
+          lMap.fitBounds(poly.getBounds(), { padding: [30, 30] });
+        }
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(() => {
+      if (typeof google === "undefined" || !window.google || !window.google.maps) {
+        initLeafletFallbackMap();
+      }
+    }, 500);
+  });
+</script>
+
+{% if GOOGLE_MAPS_API_KEY %}
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap">
+</script>
+{% endif %}
+{% endblock %}
