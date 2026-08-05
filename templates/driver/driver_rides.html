@@ -212,7 +212,7 @@
     </div>
 
     <!-- Desktop View: Table (Hidden on Mobile < 768px) -->
-    <div class="card-body p-0 d-none d-md-block">
+    <div id="desktop-ride-table-wrapper" class="card-body p-0 d-none d-md-block">
       <div class="table-responsive">
         <table class="table table-dark table-hover align-middle mb-0" style="background:transparent;">
           <thead style="background:#1e293b;">
@@ -322,7 +322,7 @@
     </div>
 
     <!-- Mobile View: Uber Native Mobile Cards (Displayed on Mobile < 768px) -->
-    <div class="card-body p-3 d-block d-md-none bg-dark">
+    <div id="mobile-ride-cards-wrapper" class="card-body p-3 d-block d-md-none bg-dark">
       {% for booking in bookings %}
       <div class="p-3 mb-3 rounded-4 shadow-sm" style="background:#1e293b; border:1px solid #334155;">
         <!-- Top Row: ID & Status -->
@@ -682,29 +682,34 @@
     }
   });
 
-  // Auto-refresh ride requests table in background every 5 seconds
+  // Auto-refresh ride requests in background every 3 seconds for both Desktop and Mobile views
   function pollDriverRides() {
-    const toggle = document.getElementById("driverStatusToggle");
-    if (toggle && toggle.checked) {
-      fetch(window.location.href, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then(r => r.text())
-        .then(html => {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, "text/html");
-          const newTable = doc.querySelector("table");
-          const oldTable = document.querySelector("table");
-          if (newTable && oldTable && newTable.innerHTML !== oldTable.innerHTML) {
-            oldTable.innerHTML = newTable.innerHTML;
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(pos => updatePickupDistances(pos.coords.latitude, pos.coords.longitude));
-            }
-          }
-        })
-        .catch(err => console.log(err));
-    }
+    fetch(window.location.href, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const newTable = doc.querySelector("#desktop-ride-table-wrapper");
+        const oldTable = document.querySelector("#desktop-ride-table-wrapper");
+        if (newTable && oldTable && newTable.innerHTML !== oldTable.innerHTML) {
+          oldTable.innerHTML = newTable.innerHTML;
+        }
+
+        const newMobile = doc.querySelector("#mobile-ride-cards-wrapper");
+        const oldMobile = document.querySelector("#mobile-ride-cards-wrapper");
+        if (newMobile && oldMobile && newMobile.innerHTML !== oldMobile.innerHTML) {
+          oldMobile.innerHTML = newMobile.innerHTML;
+        }
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(pos => updatePickupDistances(pos.coords.latitude, pos.coords.longitude));
+        }
+      })
+      .catch(err => console.log(err));
   }
 
-  setInterval(pollDriverRides, 5000);
+  setInterval(pollDriverRides, 3000);
 
   function getCookie(name) {
     return document.cookie.split(";").map(c => c.trim())

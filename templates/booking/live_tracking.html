@@ -611,6 +611,8 @@
     "TRIP_COMPLETED":   ["badge-done",      "🏁 Completed"],
   };
 
+  const stepKeys = ["SEARCHING_DRIVER", "DRIVER_ASSIGNED", "DRIVER_COMING", "DRIVER_ARRIVED", "TRIP_STARTED", "TRIP_COMPLETED"];
+
   tracker.onStatusChange = (status, data) => {
     Object.values(panels).forEach(p => {
       const el = document.getElementById(p);
@@ -626,13 +628,26 @@
       badge.textContent = label;
     }
 
-    if (data.driver_name)  document.getElementById("driver-name").textContent  = data.driver_name;
-    if (data.driver_vehicle) document.getElementById("driver-vehicle").textContent = data.driver_vehicle;
-    if (data.driver_rating)  document.getElementById("driver-rating").textContent  = "⭐ " + data.driver_rating;
-    if (data.phone) document.getElementById("driver-call-btn").href = "tel:" + data.phone;
+    if (data && data.driver_name)    document.getElementById("driver-name").textContent    = data.driver_name;
+    if (data && data.driver_vehicle) document.getElementById("driver-vehicle").textContent = data.driver_vehicle;
+    if (data && data.driver_rating)  document.getElementById("driver-rating").textContent  = "⭐ " + data.driver_rating;
+    if (data && data.phone)          document.getElementById("driver-call-btn").href       = "tel:" + data.phone;
+
+    // Update horizontal stepper UI dots live
+    const activeIdx = stepKeys.indexOf(status);
+    if (activeIdx !== -1) {
+      stepKeys.forEach((sKey, i) => {
+        const stepEl = document.getElementById(`step-${sKey}`);
+        if (stepEl) {
+          stepEl.classList.remove("active", "completed");
+          if (i < activeIdx) stepEl.classList.add("completed");
+          else if (i === activeIdx) stepEl.classList.add("active");
+        }
+      });
+    }
   };
 
-  let currentRideStatus = "{{ booking.status }}";
+  let currentRideStatus = "";
 
   function checkBookingStatusRealtime() {
     fetch(`/booking/api/status/{{ booking.id }}/`)
@@ -655,6 +670,8 @@
       .catch(err => console.log(err));
   }
 
+  // Initial immediate status sync on page load/refresh
+  checkBookingStatusRealtime();
   setInterval(checkBookingStatusRealtime, 2000);
 
   function sendPresetChat(text) { postChatMessage(text); }
