@@ -5,6 +5,8 @@ urlpatterns = [
     # Public apply forms
     path("become-a-partner/", views.partner_apply, name="partner_apply"),
     path("become-a-driver/",  views.driver_apply,  name="driver_apply"),
+    path("partner-apply/",    views.partner_apply),
+    path("driver-apply/",     views.driver_apply),
     path("apply/success/",    views.apply_success,  name="apply_success"),
 
     # Admin management

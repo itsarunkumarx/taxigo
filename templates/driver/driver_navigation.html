@@ -5,42 +5,131 @@
 
 {% block extra_css %}
 <style>
-  body { background-color: #0f172a; color: #f8fafc; }
+  body { background-color: #070a12; color: #f8fafc; font-family: 'Outfit', sans-serif; }
 
   .nav-header {
-    background: #1e293b;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(16px);
     border-radius: 20px;
     padding: 20px;
-    border: 1px solid #334155;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
   }
 
+  .nav-map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    border-radius: 24px;
+    border: 2px solid rgba(245, 158, 11, 0.3);
+    overflow: hidden;
+    background: #0f172a;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.8);
+  }
   .nav-map {
     width: 100%;
-    height: 500px;
-    border-radius: 20px;
-    border: 2px solid #334155;
-    overflow: hidden;
+    height: 100%;
+  }
+
+  /* Driver Floating HUD */
+  .driver-map-hud {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+  }
+  .driver-hud-pill {
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    padding: 8px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
   }
 
   .action-card {
-    background: #1e293b;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(16px);
     border-radius: 20px;
     padding: 24px;
-    border: 1px solid #334155;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
   }
 
-  .speedometer {
-    width: 80px;
-    height: 80px;
+  .speedometer-glow {
+    width: 84px;
+    height: 84px;
     border-radius: 50%;
-    background: rgba(245, 158, 11, 0.1);
+    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
     border: 3px solid #f59e0b;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     color: #f59e0b;
+    box-shadow: 0 0 24px rgba(245,158,11,0.4);
+    animation: speedPulse 2s infinite alternate;
+  }
+  @keyframes speedPulse {
+    0% { box-shadow: 0 0 16px rgba(245,158,11,0.3); }
+    100% { box-shadow: 0 0 28px rgba(245,158,11,0.6); }
+  }
+
+  /* Custom Taxi Marker */
+  .car-marker-container {
+    transition: transform 0.3s ease-out;
+  }
+  .car-beacon-driver {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .car-glow-driver {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.8);
+    animation: driverCarPulse 1.8s infinite alternate;
+  }
+  @keyframes driverCarPulse {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    100% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .beacon-sonar-pin {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    position: relative;
+  }
+  .beacon-sonar-ring {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid #f59e0b;
+    animation: sonarBeacon 2s infinite ease-out;
+  }
+  @keyframes sonarBeacon {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
   }
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -50,15 +139,17 @@
 <div class="container py-4" style="max-width:1100px;">
 
   <!-- Top Header -->
-  <div class="nav-header d-flex align-items-center justify-content-between">
+  <div class="nav-header d-flex align-items-center justify-content-between flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
-      <a href="{% url 'driver_rides' %}" class="btn btn-outline-secondary rounded-circle" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+      <a href="{% url 'driver_rides' %}" class="btn btn-outline-secondary rounded-circle" style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
         <i class="bi bi-arrow-left fs-5"></i>
       </a>
       <div>
-        <h4 class="fw-bold mb-0 text-white">Ride Navigation #{{ booking.id }}</h4>
-        <span class="badge bg-warning text-dark me-2">{{ booking.get_status_display }}</span>
-        <span class="text-muted small">Customer: {{ booking.customer.get_full_name|default:booking.customer.username }}</span>
+        <h4 class="fw-bold mb-0 text-white">Turn-by-Turn Navigation</h4>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          <span class="badge bg-warning text-dark fw-bold">{{ booking.get_status_display }}</span>
+          <span class="text-muted small">Booking #{{ booking.id }} • Passenger: <strong>{{ booking.customer.get_full_name|default:booking.customer.username }}</strong></span>
+        </div>
       </div>
     </div>
     <div>
@@ -66,13 +157,13 @@
         <a id="external_google_maps_btn" target="_blank"
            href="https://www.google.com/maps/dir/?api=1&origin={% if booking.pickup_lat %}{{ booking.pickup_lat }},{{ booking.pickup_lng }}{% else %}{{ booking.pickup_location|urlencode }}{% endif %}&destination={% if booking.drop_lat %}{{ booking.drop_lat }},{{ booking.drop_lng }}{% else %}{{ booking.drop_location|urlencode }}{% endif %}&travelmode=driving"
            class="btn btn-success fw-bold rounded-pill px-4 shadow">
-          <i class="bi bi-compass-fill me-2"></i>Navigate to Drop Location
+          <i class="bi bi-compass-fill me-2"></i>External Google Maps
         </a>
       {% else %}
         <a id="external_google_maps_btn" target="_blank"
            href="https://www.google.com/maps/dir/?api=1&destination={% if booking.pickup_lat %}{{ booking.pickup_lat }},{{ booking.pickup_lng }}{% else %}{{ booking.pickup_location|urlencode }}{% endif %}&travelmode=driving"
            class="btn btn-warning fw-bold text-dark rounded-pill px-4 shadow">
-          <i class="bi bi-compass-fill me-2"></i>Navigate to Pickup Location
+          <i class="bi bi-compass-fill me-2"></i>Navigate to Pickup
         </a>
       {% endif %}
     </div>
@@ -86,12 +177,12 @@
       <!-- Live Turn-by-Turn Instruction Banner -->
       <div class="card border-0 shadow-lg mb-3 rounded-4 text-white p-3" style="background:#1e293b; border-left: 6px solid #f59e0b !important;">
         <div class="d-flex align-items-center gap-3">
-          <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" style="width:52px; height:52px; font-size:24px;">
+          <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center shadow-lg" style="width:52px; height:52px; font-size:24px;">
             <i class="bi bi-arrow-up-right-circle-fill"></i>
           </div>
           <div>
             {% if booking.status == "TRIP_STARTED" or booking.status == "On Ride" or booking.status == "TRIP_COMPLETED" %}
-              <span class="text-warning x-small text-uppercase fw-bold d-block">TRIP ACTIVE ➔ DESTINATION ROUTE</span>
+              <span class="text-success x-small text-uppercase fw-bold d-block">TRIP ACTIVE ➔ DESTINATION ROUTE</span>
               <h5 class="fw-bold mb-0 text-white" id="turn_instruction_text">Proceed to Destination: {{ booking.drop_location|truncatechars:35 }}</h5>
             {% else %}
               <span class="text-warning x-small text-uppercase fw-bold d-block">BEFORE OTP ➔ PICKUP ROUTE</span>
@@ -101,7 +192,22 @@
         </div>
       </div>
 
-      <div class="nav-map" id="nav_map"></div>
+      <div class="nav-map-wrapper mb-3">
+        <!-- Floating HUD Over Map -->
+        <div class="driver-map-hud">
+          <div class="driver-hud-pill">
+            <span class="badge bg-success rounded-pill px-2 py-1" style="font-size:10px;"><i class="bi bi-broadcast me-1"></i>GPS Active</span>
+            <span class="text-white small fw-bold" id="hud_driver_status">Live Navigation</span>
+          </div>
+          <div class="d-flex gap-2" style="pointer-events:auto;">
+            <button onclick="recenterDriverNav()" class="btn btn-dark rounded-circle border border-secondary shadow" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;" title="Recenter on Taxi">
+              <i class="bi bi-crosshair text-warning"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-map" id="nav_map"></div>
+      </div>
     </div>
 
     <!-- Right Control Panel -->
@@ -109,12 +215,12 @@
 
       <!-- Driver Live Metrics -->
       <div class="action-card mb-4 d-flex align-items-center justify-content-around">
-        <div class="speedometer">
+        <div class="speedometer-glow">
           <span id="speed_val" class="fs-4 fw-bold">0</span>
-          <span style="font-size:10px;">KM/H</span>
+          <span style="font-size:10px; font-weight:800;">KM/H</span>
         </div>
         <div class="text-start">
-          <div class="text-muted small">DISTANCE</div>
+          <div class="text-muted small">TRIP DISTANCE</div>
           <div class="fw-bold fs-4 text-white" id="nav_dist_val">{{ booking.distance|floatformat:1 }} km</div>
           <div class="text-muted small mt-1">EST. FARE: <strong class="text-warning">₹{{ booking.total_fare|floatformat:0 }}</strong></div>
         </div>
@@ -148,14 +254,14 @@
 
         {% elif booking.status == "DRIVER_ASSIGNED" or booking.status == "Accepted" %}
 
-          <p class="text-muted small mb-2">Ask customer for OTP to verify & start ride:</p>
+          <p class="text-muted small mb-2">Ask passenger for OTP to start trip:</p>
           <form method="POST" action="{% url 'start_ride' booking.id %}">
             {% csrf_token %}
             <div class="input-group mb-3">
               <input type="text" name="otp" placeholder="Enter 6-digit OTP" maxlength="6"
-                     class="form-control bg-dark text-white border-secondary text-center fw-bold fs-5" required>
+                     class="form-control bg-dark text-white border-secondary text-center fw-bold fs-4" required>
             </div>
-            <button type="submit" class="btn btn-success btn-lg w-100 fw-bold rounded-pill">
+            <button type="submit" class="btn btn-success btn-lg w-100 fw-bold rounded-pill shadow-lg">
               VERIFY OTP & START TRIP
             </button>
           </form>
@@ -164,8 +270,8 @@
 
           <form method="POST" action="{% url 'complete_ride' booking.id %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold rounded-pill">
-              COMPLETE TRIP & COLLECT PAYMENT
+            <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold rounded-pill shadow-lg">
+              COMPLETE TRIP & COLLECT FARE
             </button>
           </form>
 
@@ -197,7 +303,7 @@
         </div>
 
         <div class="input-group input-group-sm">
-          <input type="text" id="driver_msg_input" class="form-control bg-dark text-white border-secondary" placeholder="Reply to passenger...">
+          <input type="text" id="driver_msg_input" class="form-control bg-dark text-white border-secondary" placeholder="Reply to passenger..." onkeypress="if(event.key==='Enter') sendDriverCustomMsg()">
           <button class="btn btn-warning fw-bold text-dark" type="button" onclick="sendDriverCustomMsg()"><i class="bi bi-send-fill"></i></button>
         </div>
       </div>
@@ -213,7 +319,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/rovexa-ws.js' %}"></script>
 <script>
-  let navMap, driverMarker, routePolyline;
+  let navMap, driverMarker, routePolyline, routeGlowPolyline;
+  let lastDriverLat = null, lastDriverLng = null, currentHeading = 0;
+
   const pLat = {{ booking.pickup_lat|default:12.9716 }};
   const pLng = {{ booking.pickup_lng|default:77.5946 }};
   const dLat = {{ booking.drop_lat|default:12.9352 }};
@@ -226,37 +334,79 @@
   });
 
   function initNavMap() {
-    navMap = L.map('nav_map').setView([pLat, pLng], 8);
+    navMap = L.map('nav_map', {
+      zoomControl: false,
+      attributionControl: false
+    }).setView([pLat, pLng], 14);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // CartoDB Dark Matter High-Res Vector Neon Tile Layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-      attribution: '© OpenStreetMap'
+      subdomains: 'abcd'
     }).addTo(navMap);
 
-    // Markers
-    L.marker([pLat, pLng], {
-      icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png', iconSize: [25, 41] })
-    }).addTo(navMap).bindPopup("📍 Customer Pickup: {{ booking.pickup_location|escapejs }}");
+    // Custom Pickup Sonar Beacon
+    const pickupIcon = L.divIcon({
+      className: 'custom-pin-pickup',
+      html: `
+        <div class="beacon-sonar-pin bg-warning border border-2 border-white shadow">
+          <div class="beacon-sonar-ring"></div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+    L.marker([pLat, pLng], { icon: pickupIcon }).addTo(navMap)
+      .bindPopup("<strong style='color:#f59e0b;'>📍 Customer Pickup:</strong><br>{{ booking.pickup_location|escapejs }}");
 
-    L.marker([dLat, dLng], {
-      icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41] })
-    }).addTo(navMap).bindPopup("🏁 Drop Destination: {{ booking.drop_location|escapejs }}");
+    // Custom Drop Target Beacon
+    const dropIcon = L.divIcon({
+      className: 'custom-pin-drop',
+      html: `
+        <div style="width:26px; height:26px; border-radius:50%; background:#ef4444; border:2px solid #ffffff; box-shadow:0 0 15px rgba(239,68,68,0.8); display:flex; align-items:center; justify-content:center; font-size:12px;">
+          🏁
+        </div>
+      `,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+    L.marker([dLat, dLng], { icon: dropIcon }).addTo(navMap)
+      .bindPopup("<strong style='color:#ef4444;'>🏁 Destination:</strong><br>{{ booking.drop_location|escapejs }}");
 
-    // Fetch full pickup-to-drop trip route
+    // Fetch and Draw Neon Road Route
     fetchRoute(pLng, pLat, dLng, dLat);
   }
 
   function fetchRoute(oLng, oLat, dLng, dLat) {
     if (routePolyline) navMap.removeLayer(routePolyline);
+    if (routeGlowPolyline) navMap.removeLayer(routeGlowPolyline);
 
     fetch(`https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${dLng},${dLat}?steps=true&overview=full&geometries=geojson`)
       .then(r => r.json())
       .then(data => {
         if (data.routes && data.routes.length > 0) {
           const route = data.routes[0];
-          routePolyline = L.geoJSON(route.geometry, {
-            style: { color: isTripStarted ? '#10b981' : '#f59e0b', weight: 6, opacity: 0.85 }
+          const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+
+          const routeColor = isTripStarted ? '#10b981' : '#f59e0b';
+          const glowColor = isTripStarted ? '#059669' : '#d97706';
+
+          routeGlowPolyline = L.polyline(coords, {
+            color: glowColor,
+            weight: 8,
+            opacity: 0.35,
+            lineCap: 'round',
+            lineJoin: 'round'
           }).addTo(navMap);
+
+          routePolyline = L.polyline(coords, {
+            color: routeColor,
+            weight: 4,
+            opacity: 0.95,
+            lineCap: 'round',
+            lineJoin: 'round'
+          }).addTo(navMap);
+
           navMap.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
 
           const realKm = (route.distance / 1000).toFixed(1);
@@ -268,25 +418,26 @@
             const name = firstStep.name || (isTripStarted ? "{{ booking.drop_location|escapejs }}" : "{{ booking.pickup_location|escapejs }}");
             document.getElementById("turn_instruction_text").textContent = "Proceed along " + name;
           }
-        } else {
-          drawFallbackPolyline(oLat, oLng, dLat, dLng);
         }
       })
-      .catch(err => {
-        drawFallbackPolyline(oLat, oLng, dLat, dLng);
-      });
+      .catch(err => console.log(err));
   }
 
-  function drawFallbackPolyline(oLat, oLng, dLat, dLng) {
-    const latlngs = [[oLat, oLng], [dLat, dLng]];
-    routePolyline = L.polyline(latlngs, { color: isTripStarted ? '#10b981' : '#f59e0b', weight: 6, opacity: 0.85, dashArray: '8, 8' }).addTo(navMap);
-    navMap.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
-    const dist = (L.latLng(oLat, oLng).distanceTo(L.latLng(dLat, dLng)) / 1000 * 1.25).toFixed(1);
-    const distElem = document.getElementById("nav_dist_val");
-    if (distElem) distElem.textContent = dist + " km";
+  function calculateBearing(lat1, lon1, lat2, lon2) {
+    const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+    const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+              Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
+    const brng = Math.atan2(y, x) * 180 / Math.PI;
+    return (brng + 360) % 360;
   }
 
-  // Live Driver GPS stream
+  function recenterDriverNav() {
+    if (lastDriverLat && lastDriverLng && navMap) {
+      navMap.setView([lastDriverLat, lastDriverLng], 16, { animate: true });
+    }
+  }
+
+  // Live Driver GPS stream with Heading Interpolation
   function startDriverGPS() {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(pos => {
@@ -296,18 +447,40 @@
 
         document.getElementById("speed_val").textContent = speed;
 
+        if (lastDriverLat && lastDriverLng) {
+          const calculatedHeading = calculateBearing(lastDriverLat, lastDriverLng, lat, lng);
+          if (calculatedHeading) currentHeading = Math.round(calculatedHeading);
+        }
+        lastDriverLat = lat;
+        lastDriverLng = lng;
+
+        const driverSvg = `
+          <div class="car-marker-container" style="transform: rotate(${currentHeading}deg);">
+            <div class="car-beacon-driver">
+              <div class="car-glow-driver"></div>
+              <svg width="42" height="42" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="18" fill="#10b981" stroke="#ffffff" stroke-width="2.5" />
+                <polygon points="21,5 29,18 21,14 13,18" fill="#ffffff" opacity="0.9"/>
+                <text x="21" y="27" font-size="18" text-anchor="middle">🚕</text>
+              </svg>
+            </div>
+          </div>
+        `;
+
+        const driverIcon = L.divIcon({
+          className: 'custom-driver-icon',
+          html: driverSvg,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22]
+        });
+
         if (!driverMarker) {
-          driverMarker = L.marker([lat, lng], {
-            icon: L.icon({
-              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-              iconSize: [30, 48]
-            })
-          }).addTo(navMap).bindPopup("Your Taxi");
+          driverMarker = L.marker([lat, lng], { icon: driverIcon }).addTo(navMap).bindPopup("Your Taxi Location");
         } else {
           driverMarker.setLatLng([lat, lng]);
+          driverMarker.setIcon(driverIcon);
         }
 
-        // Before OTP: Update Google Maps link with Driver Live Location to Customer Pickup
         if (!isTripStarted) {
           const gmapsBtn = document.getElementById("external_google_maps_btn");
           if (gmapsBtn) {
@@ -319,9 +492,7 @@
   }
 
   // ── Driver-Passenger Live Chat Functions ──────────────────────────────────
-  function sendDriverQuickMsg(txt) {
-    postDriverChat(txt);
-  }
+  function sendDriverQuickMsg(txt) { postDriverChat(txt); }
 
   function sendDriverCustomMsg() {
     const input = document.getElementById("driver_msg_input");
@@ -338,11 +509,7 @@
       body: JSON.stringify({ booking_id: "{{ booking.id }}", message: msg, sender: "DRIVER" })
     })
     .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        loadDriverChat();
-      }
-    });
+    .then(data => { if (data.success) loadDriverChat(); });
   }
 
   let prevMsgCount = 0;
@@ -398,8 +565,7 @@
   }
 
   function getCookie(name) {
-    return document.cookie.split(";").map(c => c.trim())
-      .find(c => c.startsWith(name + "="))?.split("=")[1] || "";
+    return document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(name + "="))?.split("=")[1] || "";
   }
 
   setInterval(loadDriverChat, 2000);

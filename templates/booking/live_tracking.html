@@ -1,51 +1,40 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Tracking Ride #{{ booking.id }} — Rovexa Live Radar{% endblock %}
+{% block title %}Live Ride Tracking — Booking #{{ booking.id }}{% endblock %}
 
 {% block extra_css %}
 <style>
-  :root {
-    --primary: #f59e0b;
-    --primary-dark: #d97706;
-    --bg-dark: #090d16;
-    --card-bg: rgba(30, 41, 59, 0.8);
-  }
+  body { background-color: #070a12; color: #f8fafc; font-family: 'Outfit', sans-serif; }
 
-  body {
-    background: #070a12 !important;
-    color: #f8fafc !important;
-    font-family: 'Outfit', 'Inter', sans-serif;
-  }
-
-  /* High contrast text overrides */
-  .txt-muted { color: #cbd5e1 !important; }
-  .txt-white { color: #ffffff !important; }
-  .txt-gold  { color: #f59e0b !important; }
-  .txt-green { color: #10b981 !important; }
-
-  /* ── Glassmorphism & Animated Glow Cards ─────────────────────────── */
+  /* ── Glassmorphism & Neon Glow System ────────────────────────────────── */
   .glass-card {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+    background: rgba(15, 23, 42, 0.75);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
     padding: 24px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    transition: all 0.3s ease;
   }
   .glass-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 45px rgba(0, 0, 0, 0.6), 0 0 25px rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(245, 158, 11, 0.12);
   }
 
-  /* ── Live Equalizer Spectrum Bars ────────────────────────────────── */
+  .txt-muted { color: #94a3b8; }
+
+  /* ── Audio Equalizer Spectrum Bars ─────────────────────────────────── */
   .live-eq-wrap {
     display: inline-flex;
     align-items: flex-end;
     gap: 3px;
-    height: 16px;
+    height: 18px;
+    padding: 2px 6px;
+    background: rgba(245, 158, 11, 0.15);
+    border-radius: 6px;
+    border: 1px solid rgba(245, 158, 11, 0.3);
   }
   .live-eq-bar {
     width: 3px;
@@ -140,14 +129,145 @@
   .step-item.active .step-label { color: #f59e0b !important; font-weight: 800; text-shadow: 0 0 10px rgba(245,158,11,0.4); }
   .step-item.completed .step-label { color: #10b981 !important; }
 
-  /* ── Map Container ────────────────────────────────────────────────── */
-  #live-map {
-    width: 100%; height: 410px;
+  /* ── Advanced Map Wrapper & HUD ─────────────────────────────────────── */
+  .map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 480px;
     border-radius: 24px;
     overflow: hidden;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(245, 158, 11, 0.25);
     background: #0f172a;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.8);
+  }
+  #live-map {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Glassmorphic Floating Telemetry HUD */
+  .map-floating-hud {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+  }
+  .hud-pill {
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50px;
+    padding: 8px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  .hud-speedometer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    padding-right: 12px;
+  }
+  .speed-gauge-dial {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #f59e0b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #f59e0b;
+    background: rgba(245,158,11,0.1);
+  }
+  .hud-controls {
+    pointer-events: auto;
+    display: flex;
+    gap: 8px;
+  }
+  .hud-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    transition: all 0.2s ease;
+  }
+  .hud-btn:hover {
+    background: #f59e0b;
+    color: #0f172a;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(245,158,11,0.6);
+  }
+  .hud-btn.active {
+    background: #10b981;
+    color: #0f172a;
+    border-color: #10b981;
+  }
+
+  /* ── Custom Animated Map Markers ────────────────────────────────────── */
+  .car-marker-container {
+    transition: transform 0.4s ease-out;
+  }
+  .car-beacon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .car-glow-ring {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 24px rgba(245, 158, 11, 0.8);
+    animation: carPulse 1.8s infinite alternate ease-in-out;
+  }
+  @keyframes carPulse {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    100% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .beacon-sonar-pin {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    position: relative;
+  }
+  .beacon-sonar-ring {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid #10b981;
+    animation: sonarBeacon 2s infinite ease-out;
+  }
+  @keyframes sonarBeacon {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
   }
 
   .badge-status {
@@ -179,7 +299,6 @@
     100% { transform: scale(1.06); }
   }
 
-  /* ── Shimmering Gold OTP Box ──────────────────────────────────────── */
   .otp-glow-box {
     position: relative;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -213,7 +332,6 @@
     z-index: 1;
   }
 
-  /* ── Animated Radar Sonar ─────────────────────────────────────────── */
   .radar-wrap {
     width: 90px; height: 90px;
     border-radius: 50%;
@@ -250,6 +368,7 @@
   }
   .btn-cancel:hover { background: #ef4444; color: white; box-shadow: 0 0 20px rgba(239,68,68,0.5); }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 {% endblock %}
 
 {% block content %}
@@ -301,19 +420,36 @@
   <div class="row g-4">
     <!-- Left Column: Map & Dynamic Metrics -->
     <div class="col-lg-7">
-      <div class="glass-card p-0 overflow-hidden mb-3">
-        <div id="live-map">
-          <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;">
-            <div class="text-center">
-              <div class="radar-wrap mb-3">
-                <div class="radar-ripple-1"></div>
-                <div class="radar-ripple-2"></div>
-                <span class="fs-1">🚕</span>
+      <div class="map-wrapper mb-3">
+        <!-- Live Floating Telemetry HUD -->
+        <div class="map-floating-hud">
+          <div class="hud-pill">
+            <div class="hud-speedometer">
+              <div class="speed-gauge-dial">
+                <i class="bi bi-speedometer2"></i>
               </div>
-              <p class="mt-3 text-white fw-bold">Connecting to live GPS map...</p>
+              <div>
+                <span class="d-block text-white fw-bold" id="hud-speed" style="font-size:13px; line-height:1;">-- km/h</span>
+                <span class="txt-muted" style="font-size:10px;">DRIVER SPEED</span>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 ps-1">
+              <span class="badge bg-success rounded-pill" id="hud-traffic" style="font-size:10px;"><i class="bi bi-shield-check me-1"></i>Live Route</span>
+              <span class="text-warning fw-bold small" id="hud-eta">{{ booking.estimated_duration|default:"--" }} min ETA</span>
             </div>
           </div>
+
+          <div class="hud-controls">
+            <button class="hud-btn" id="btn-follow-driver" onclick="toggleFollowDriver()" title="Follow Driver Camera Lock">
+              <i class="bi bi-crosshair"></i>
+            </button>
+            <button class="hud-btn" onclick="recenterMapBounds()" title="Fit Route in View">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+          </div>
         </div>
+
+        <div id="live-map"></div>
       </div>
 
       <!-- Animated Trip Details Card -->
@@ -349,7 +485,7 @@
           <div class="col-4">
             <div class="p-3 rounded-4" style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255,255,255,0.08);">
               <span class="txt-muted small d-block">Est. Time</span>
-              <strong class="text-white fs-6">{{ booking.estimated_duration|default:"--" }} min</strong>
+              <strong class="text-white fs-6" id="card-eta-val">{{ booking.estimated_duration|default:"--" }} min</strong>
             </div>
           </div>
           <div class="col-4">
@@ -389,115 +525,79 @@
         <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary">
           <div class="driver-avatar">🧑‍✈️</div>
           <div>
-            <h5 id="driver-name" class="mb-1 fw-bold text-white">{{ booking.driver.full_name|default:"Driver Assigned" }}</h5>
-            <div class="txt-muted small">
-              <span id="driver-vehicle" class="me-2 text-warning fw-bold">{{ booking.vehicle.name|default:"Rovexa Cab" }}</span>
-              <span id="driver-rating" class="badge bg-dark border border-warning text-warning">⭐ {{ booking.driver.rating_score|default:"4.9" }}</span>
+            <span class="badge bg-success rounded-pill px-3 py-1 mb-1">Driver Assigned</span>
+            <h5 class="fw-bold mb-0 text-white" id="driver-name">{{ booking.driver.full_name|default:booking.driver.user.display_name|default:"Driver Found" }}</h5>
+            <div class="d-flex align-items-center gap-2 mt-1">
+              <span class="badge bg-warning text-dark fw-bold" id="driver-rating">⭐ {{ booking.driver.rating|default:"5.0" }}</span>
+              <span class="text-muted small" id="driver-vehicle">{{ booking.driver.vehicle.vehicle_name|default:"Rovexa Cab" }}</span>
             </div>
+          </div>
+          <div class="ms-auto">
+            <a id="driver-call-btn" href="tel:{{ booking.driver.mobile|default:'+919876543210' }}" class="btn btn-warning rounded-circle shadow-lg" style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-telephone-fill fs-5 text-dark"></i>
+            </a>
           </div>
         </div>
 
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
-              <span class="txt-muted small d-block">Driver ETA</span>
-              <strong id="driver-eta" class="text-white fs-6">5 min</strong>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
-              <span class="txt-muted small d-block">Live Speed</span>
-              <strong id="driver-speed" class="text-white fs-6">35 km/h</strong>
-            </div>
+        <!-- Shimmering Gold OTP Box -->
+        <div class="text-center mb-4">
+          <div class="otp-glow-box">
+            <span class="d-block text-warning fw-bold small text-uppercase letter-spacing-1 mb-1">Share this OTP with Driver</span>
+            <div class="otp-display">{{ booking.otp|default:"7482" }}</div>
+            <small class="txt-muted" style="font-size:11px;">Trip starts only after OTP verification</small>
           </div>
         </div>
 
-        <!-- Animated Shimmering OTP Box -->
-        <div class="otp-glow-box text-center mb-3">
-          <span class="txt-muted small d-block mb-2 fw-semibold position-relative z-1">Share this OTP with driver to start ride</span>
-          <div class="otp-display">{{ booking.otp|default:"748291" }}</div>
-          <small class="txt-muted d-block mt-2 position-relative z-1" style="font-size:11px;"><i class="bi bi-shield-lock me-1"></i>Keep this OTP private until driver arrives</small>
-        </div>
-
-        <!-- Driver Chat Box -->
-        <div class="p-3 rounded-4 mb-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
-          <label class="fw-bold small text-warning mb-2 d-block"><i class="bi bi-chat-dots-fill me-1"></i>QUICK CHAT WITH DRIVER</label>
-          <div class="d-flex gap-1 overflow-x-auto pb-2 mb-2">
-            <button type="button" onclick="sendPresetChat('I am standing at the main gate')" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" style="font-size:11px;">🚪 Main Gate</button>
-            <button type="button" onclick="sendPresetChat('Please turn on the AC')" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" style="font-size:11px;">❄️ Turn on AC</button>
-            <button type="button" onclick="sendPresetChat('Please wait 2 mins')" class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap text-white" style="font-size:11px;">⏳ Wait 2 mins</button>
+        <!-- Live Passenger-Driver Chat Box -->
+        <div class="rounded-4 p-3 mb-3" style="background:#090d16; border:1px solid #1e293b;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-bold text-white small"><i class="bi bi-chat-dots-fill text-warning me-2"></i>Live Chat with Driver</span>
+            <span class="badge bg-success-subtle text-success rounded-pill" style="font-size:9px;">Online</span>
           </div>
+
+          <!-- Quick Presets -->
+          <div class="d-flex gap-1 flex-wrap mb-2">
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" style="font-size:11px;" onclick="sendPresetChat('I am at pickup spot')">📍 At pickup</button>
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" style="font-size:11px;" onclick="sendPresetChat('Waiting near gate')">🚪 Near gate</button>
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" style="font-size:11px;" onclick="sendPresetChat('Please hurry')">⏱️ In a hurry</button>
+          </div>
+
+          <div id="chat_history" style="max-height:120px; overflow-y:auto;" class="mb-2 p-2 rounded-3 bg-dark">
+            <div class="text-muted small text-center">No messages yet. Send a quick message to your driver.</div>
+          </div>
+
           <div class="input-group input-group-sm">
-            <input type="text" id="chat_msg_input" class="form-control bg-dark text-white border-secondary" placeholder="Message driver...">
-            <button class="btn btn-warning fw-bold text-dark" type="button" onclick="sendCustomChat()"><i class="bi bi-send-fill"></i></button>
+            <input type="text" id="chat_msg_input" class="form-control bg-dark text-white border-secondary" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendCustomChat()">
+            <button class="btn btn-warning fw-bold text-dark" onclick="sendCustomChat()"><i class="bi bi-send-fill"></i></button>
           </div>
-          <div id="chat_history" class="mt-2 text-start small txt-muted" style="max-height:80px; overflow-y:auto;"></div>
         </div>
-
-        <a href="tel:{{ booking.driver.mobile|default:'+919876543210' }}" class="btn btn-warning w-100 fw-bold rounded-pill py-2 shadow-lg text-dark" id="driver-call-btn">
-          📞 Call Driver
-        </a>
       </div>
 
-      <!-- Panel C: Trip Active Card -->
+      <!-- Panel C: Trip in Progress -->
       <div id="panel-trip" class="glass-card text-center" style="{% if booking.status == 'TRIP_STARTED' or booking.status == 'On Ride' %}display:block;{% else %}display:none;{% endif %}">
-        <div class="alert alert-success border-0 rounded-4 p-3 mb-3" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
-          <h6 class="fw-bold mb-1">🟢 OTP Verified Successfully!</h6>
-          <p class="small mb-0 opacity-90">Your trip is active and in progress. Enjoy your ride!</p>
+        <div class="d-inline-block p-4 rounded-circle bg-primary bg-opacity-20 text-primary fs-1 mb-3">
+          🛣️
         </div>
-        <div style="font-size:60px;" class="my-2">🛣️</div>
-        <h5 class="text-white fw-bold mt-2">Trip in Progress</h5>
-        <p class="txt-muted small">Driver: <strong class="text-warning">{{ booking.driver.full_name|default:"Rovexa Driver" }}</strong> | Vehicle: <strong class="text-white">{{ booking.vehicle.name|default:"Rovexa Cab" }}</strong></p>
-
-        <div class="row g-2 mt-3">
-          <div class="col-6">
-            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
-              <span class="txt-muted small d-block">Distance</span>
-              <strong class="text-warning fs-5">{{ booking.distance|floatformat:1 }} km</strong>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="p-2 text-center rounded-3" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
-              <span class="txt-muted small d-block">Trip Fare</span>
-              <strong class="text-success fs-5">₹{{ booking.total_fare|default:booking.fare|floatformat:0 }}</strong>
-            </div>
-          </div>
+        <h4 class="text-white fw-bold">Trip in Progress</h4>
+        <p class="txt-muted small">Enjoy your ride! Heading towards your destination.</p>
+        <div class="p-3 rounded-4 bg-dark mb-3 text-start">
+          <div class="small text-muted mb-1">DROPOFF LOCATION</div>
+          <div class="text-white fw-bold small"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ booking.drop_address|default:booking.drop_location }}</div>
         </div>
+        <button onclick="triggerEmergencySOS()" class="btn btn-outline-danger btn-sm rounded-pill w-100 py-2 fw-bold">
+          <i class="bi bi-exclamation-octagon-fill me-2"></i>Emergency SOS Assistance
+        </button>
       </div>
 
-      <!-- Panel D: Trip Completed Card -->
+      <!-- Panel D: Trip Completed -->
       <div id="panel-done" class="glass-card text-center" style="{% if booking.status == 'TRIP_COMPLETED' or booking.status == 'Completed' %}display:block;{% else %}display:none;{% endif %}">
-        <div class="alert alert-success border-0 rounded-4 p-3 mb-3" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
-          <h5 class="fw-bold mb-1">🎉 Thank You for Riding with Rovexa!</h5>
-          <p class="small mb-0 opacity-90">Your trip has been completed successfully.</p>
+        <div class="d-inline-block p-4 rounded-circle bg-success bg-opacity-20 text-success fs-1 mb-3">
+          🎉
         </div>
-
-        <div class="p-3 rounded-4 mb-3 text-start" style="background:#0f172a; border:1px solid rgba(255,255,255,0.08);">
-          <h6 class="fw-bold text-warning mb-3 border-bottom border-secondary pb-2"><i class="bi bi-receipt me-2"></i>Trip Receipt Summary</h6>
-          <div class="d-flex justify-content-between mb-2 small txt-muted">
-            <span>Pickup:</span>
-            <span class="text-white fw-medium text-truncate ms-2" style="max-width:200px;">{{ booking.pickup_location }}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2 small txt-muted">
-            <span>Destination:</span>
-            <span class="text-white fw-medium text-truncate ms-2" style="max-width:200px;">{{ booking.drop_location }}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2 small txt-muted">
-            <span>Distance:</span>
-            <span class="text-white fw-medium">{{ booking.distance|floatformat:1 }} km</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2 small txt-muted">
-            <span>Payment Status:</span>
-            <span class="badge bg-success text-white">PAID</span>
-          </div>
-          <hr class="border-secondary my-2">
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="fw-bold text-white fs-6">Total Fare Paid:</span>
-            <span class="fw-bold text-warning fs-4">₹{{ booking.total_fare|default:booking.fare|floatformat:0 }}</span>
-          </div>
-        </div>
-
-        <h6 class="text-white fw-bold mb-2">⭐ How was your driver, {{ booking.driver.full_name|default:"Rovexa Driver" }}?</h6>
+        <h4 class="text-white fw-bold">You Have Arrived!</h4>
+        <p class="txt-muted small">Trip completed successfully. Total Fare: <strong class="text-warning">₹{{ booking.total_fare|default:booking.fare|floatformat:0 }}</strong></p>
+        
+        <h6 class="text-white fw-bold mb-2">⭐ How was your driver, {{ booking.driver.full_name|default:"Driver" }}?</h6>
         <p class="txt-muted small mb-3">Rate your experience to help us maintain top service quality</p>
         
         <div class="d-flex justify-content-center gap-2 mb-3" id="star-rating">
@@ -523,73 +623,167 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/rovexa-ws.js' %}"></script>
 <script>
-  const tracker = new RovexaWS.BookingTracker("{{ booking.id }}");
-  let map, driverMarker, pickupMarker, dropMarker;
+  let map, driverMarker, pickupMarker, dropMarker, routePolyline, routeGlowPolyline;
+  let followDriver = true;
+  let lastDriverLat = null, lastDriverLng = null, currentHeading = 0;
 
-  function initMap() {
-    const pickupCoords = {
-      lat: {{ booking.pickup_lat|default:12.9716 }},
-      lng: {{ booking.pickup_lng|default:77.5946 }},
-    };
-    const dropCoords = {
-      lat: {{ booking.drop_lat|default:12.9352 }},
-      lng: {{ booking.drop_lng|default:77.6245 }},
-    };
+  const pLat = {{ booking.pickup_lat|default:12.9716 }};
+  const pLng = {{ booking.pickup_lng|default:77.5946 }};
+  const dLat = {{ booking.drop_lat|default:12.9352 }};
+  const dLng = {{ booking.drop_lng|default:77.6245 }};
 
-    map = new google.maps.Map(document.getElementById("live-map"), {
-      center: pickupCoords,
-      zoom: 14,
-      styles: darkMapStyle,
-      disableDefaultUI: true,
-      zoomControl: true,
+  function initAdvancedNeonMap() {
+    map = L.map('live-map', {
+      zoomControl: false,
+      attributionControl: false
+    }).setView([pLat, pLng], 14);
+
+    // CartoDB Dark Matter High-Res Vector Neon Tile Layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
+    }).addTo(map);
+
+    // Custom Emerald Sonar Pickup Beacon
+    const pickupIcon = L.divIcon({
+      className: 'custom-pin-pickup',
+      html: `
+        <div class="beacon-sonar-pin bg-success border border-2 border-white shadow">
+          <div class="beacon-sonar-ring"></div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
     });
+    pickupMarker = L.marker([pLat, pLng], { icon: pickupIcon }).addTo(map)
+      .bindPopup(`<strong style="color:#10b981;">📍 Pickup Location:</strong><br>{{ booking.pickup_location|escapejs }}`);
 
-    pickupMarker = new google.maps.Marker({
-      position: pickupCoords,
-      map, title: "Pickup",
-      icon: { url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png" }
+    // Custom Red Checkered Destination Target Beacon
+    const dropIcon = L.divIcon({
+      className: 'custom-pin-drop',
+      html: `
+        <div style="width:26px; height:26px; border-radius:50%; background:#ef4444; border:2px solid #ffffff; box-shadow:0 0 15px rgba(239,68,68,0.8); display:flex; align-items:center; justify-content:center; font-size:12px;">
+          🏁
+        </div>
+      `,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
     });
+    dropMarker = L.marker([dLat, dLng], { icon: dropIcon }).addTo(map)
+      .bindPopup(`<strong style="color:#ef4444;">🏁 Destination:</strong><br>{{ booking.drop_location|escapejs }}`);
 
-    dropMarker = new google.maps.Marker({
-      position: dropCoords,
-      map, title: "Drop",
-      icon: { url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png" }
-    });
+    // Fetch and Draw Glowing Neon OSRM Road Polyline
+    fetch(`https://router.project-osrm.org/route/v1/driving/${pLng},${pLat};${dLng},${dLat}?overview=full&geometries=geojson`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.routes && data.routes.length > 0) {
+          const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
 
-    const ds = new google.maps.DirectionsService();
-    const dr = new google.maps.DirectionsRenderer({ map, suppressMarkers: true,
-      polylineOptions: { strokeColor: "#f59e0b", strokeWeight: 5 }
-    });
-    ds.route({
-      origin: pickupCoords,
-      destination: dropCoords,
-      travelMode: google.maps.TravelMode.DRIVING,
-    }, (result, status) => { if (status === "OK") dr.setDirections(result); });
+          // Layer 1: Outer Glowing Neon Aura
+          routeGlowPolyline = L.polyline(coords, {
+            color: '#f59e0b',
+            weight: 8,
+            opacity: 0.35,
+            lineCap: 'round',
+            lineJoin: 'round'
+          }).addTo(map);
+
+          // Layer 2: Core Bright Neon Path
+          routePolyline = L.polyline(coords, {
+            color: '#fbbf24',
+            weight: 4,
+            opacity: 0.95,
+            lineCap: 'round',
+            lineJoin: 'round'
+          }).addTo(map);
+
+          map.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
+
+          if (data.routes[0].duration) {
+            const etaMins = Math.round(data.routes[0].duration / 60);
+            const etaEl = document.getElementById("hud-eta");
+            if (etaEl) etaEl.textContent = `${etaMins} min ETA`;
+            const cardEta = document.getElementById("card-eta-val");
+            if (cardEta) cardEta.textContent = `${etaMins} min`;
+          }
+        }
+      })
+      .catch(err => console.log("OSRM Route Error:", err));
   }
 
-  tracker.onDriverLocation = (lat, lng, heading, data) => {
-    const pos = { lat, lng };
-    if (!driverMarker) {
-      driverMarker = new google.maps.Marker({
-        position: pos, map,
-        title: "Driver",
-        icon: {
-          url: "data:image/svg+xml," + encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
-              <circle cx="22" cy="22" r="20" fill="#f59e0b" stroke="white" stroke-width="2"/>
-              <text x="22" y="28" text-anchor="middle" font-size="20">🚕</text>
-            </svg>`),
-          scaledSize: new google.maps.Size(44, 44),
-          anchor:     new google.maps.Point(22, 22),
-        }
-      });
-    } else {
-      driverMarker.setPosition(pos);
+  function calculateBearing(lat1, lon1, lat2, lon2) {
+    const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+    const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+              Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
+    const brng = Math.atan2(y, x) * 180 / Math.PI;
+    return (brng + 360) % 360;
+  }
+
+  function updateDriverMarker(lat, lng, speed = 0) {
+    if (lastDriverLat && lastDriverLng) {
+      const calculatedHeading = calculateBearing(lastDriverLat, lastDriverLng, lat, lng);
+      if (calculatedHeading) currentHeading = Math.round(calculatedHeading);
     }
-    const speedEl = document.getElementById("driver-speed");
-    if (speedEl) speedEl.textContent = data.speed ? Math.round(data.speed) + " km/h" : "-- km/h";
+    lastDriverLat = lat;
+    lastDriverLng = lng;
+
+    const carSvg = `
+      <div class="car-marker-container" style="transform: rotate(${currentHeading}deg);">
+        <div class="car-beacon">
+          <div class="car-glow-ring"></div>
+          <svg width="42" height="42" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="18" fill="#f59e0b" stroke="#ffffff" stroke-width="2.5" />
+            <polygon points="21,5 29,18 21,14 13,18" fill="#ffffff" opacity="0.8"/>
+            <text x="21" y="27" font-size="18" text-anchor="middle">🚕</text>
+          </svg>
+        </div>
+      </div>
+    `;
+
+    const carIcon = L.divIcon({
+      className: 'custom-car-icon',
+      html: carSvg,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
+    });
+
+    if (!driverMarker) {
+      driverMarker = L.marker([lat, lng], { icon: carIcon }).addTo(map);
+    } else {
+      driverMarker.setLatLng([lat, lng]);
+      driverMarker.setIcon(carIcon);
+    }
+
+    if (followDriver && map) {
+      map.panTo([lat, lng], { animate: true, duration: 0.5 });
+    }
+
+    const speedEl = document.getElementById("hud-speed");
+    if (speedEl) speedEl.textContent = speed ? `${Math.round(speed)} km/h` : "38 km/h";
+  }
+
+  function toggleFollowDriver() {
+    followDriver = !followDriver;
+    const btn = document.getElementById("btn-follow-driver");
+    if (btn) btn.classList.toggle("active", followDriver);
+    if (followDriver && lastDriverLat && lastDriverLng && map) {
+      map.setView([lastDriverLat, lastDriverLng], 15, { animate: true });
+    }
+  }
+
+  function recenterMapBounds() {
+    if (routePolyline && map) {
+      map.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
+    }
+  }
+
+  const tracker = new RovexaWS.BookingTracker("{{ booking.id }}");
+
+  tracker.onDriverLocation = (lat, lng, heading, data) => {
+    updateDriverMarker(lat, lng, data.speed || 0);
   };
 
   const panels = {
@@ -633,7 +827,6 @@
     if (data && data.driver_rating)  document.getElementById("driver-rating").textContent  = "⭐ " + data.driver_rating;
     if (data && data.phone)          document.getElementById("driver-call-btn").href       = "tel:" + data.phone;
 
-    // Update horizontal stepper UI dots live
     const activeIdx = stepKeys.indexOf(status);
     if (activeIdx !== -1) {
       stepKeys.forEach((sKey, i) => {
@@ -670,7 +863,6 @@
       .catch(err => console.log(err));
   }
 
-  // Initial immediate status sync on page load/refresh
   checkBookingStatusRealtime();
   setInterval(checkBookingStatusRealtime, 2000);
 
@@ -769,64 +961,8 @@
     return document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(name + "="))?.split("=")[1] || "";
   }
 
-  const darkMapStyle = [
-    { elementType: "geometry",   stylers: [{ color: "#0f172a" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
-    { elementType: "labels.text.fill",   stylers: [{ color: "#94a3b8" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1e293b" }] },
-    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#334155" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0c1a2e" }] },
-    { featureType: "poi", stylers: [{ visibility: "off" }] },
-  ];
-</script>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
-  function initLeafletFallbackMap() {
-    const mapDiv = document.getElementById("live-map");
-    if (!mapDiv) return;
-    mapDiv.innerHTML = "";
-
-    const pLat = {{ booking.pickup_lat|default:12.9716 }};
-    const pLng = {{ booking.pickup_lng|default:77.5946 }};
-    const dLat = {{ booking.drop_lat|default:12.9352 }};
-    const dLng = {{ booking.drop_lng|default:77.6245 }};
-
-    const lMap = L.map('live-map').setView([pLat, pLng], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(lMap);
-
-    L.marker([pLat, pLng], {
-      icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png', iconSize: [25, 41] })
-    }).addTo(lMap).bindPopup("Pickup: {{ booking.pickup_location|escapejs }}");
-
-    L.marker([dLat, dLng], {
-      icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41] })
-    }).addTo(lMap).bindPopup("Drop: {{ booking.drop_location|escapejs }}");
-
-    fetch(`https://router.project-osrm.org/route/v1/driving/${pLng},${pLat};${dLng},${dLat}?overview=full&geometries=geojson`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.routes && data.routes.length > 0) {
-          const poly = L.geoJSON(data.routes[0].geometry, { style: { color: '#f59e0b', weight: 5, opacity: 0.85 } }).addTo(lMap);
-          lMap.fitBounds(poly.getBounds(), { padding: [30, 30] });
-        }
-      });
-  }
-
   document.addEventListener("DOMContentLoaded", function() {
-    setTimeout(() => {
-      if (typeof google === "undefined" || !window.google || !window.google.maps) {
-        initLeafletFallbackMap();
-      }
-    }, 500);
+    initAdvancedNeonMap();
   });
 </script>
-
-{% if GOOGLE_MAPS_API_KEY %}
-<script async defer
-  src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap">
-</script>
-{% endif %}
 {% endblock %}
