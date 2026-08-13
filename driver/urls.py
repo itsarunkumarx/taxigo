@@ -4,8 +4,11 @@ from . import views
 urlpatterns = [
     path("", views.driver_list, name="driver_list"),
     path("add/", views.add_driver, name="add_driver"),
+    path("create/", views.add_driver, name="driver_create"),
     path("edit/<str:id>/", views.edit_driver, name="edit_driver"),
+    path("edit/<str:id>/", views.edit_driver, name="driver_edit"),
     path("delete/<str:id>/", views.delete_driver, name="delete_driver"),
+    path("delete/<str:id>/", views.delete_driver, name="driver_delete"),
 
     # Driver Ride Center & Navigation
     path("rides/", views.driver_rides, name="driver_rides"),
