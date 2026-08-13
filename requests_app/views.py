@@ -42,6 +42,14 @@ def apply_success(request):
     return render(request, "requests_app/apply_success.html")
 
 
+def admin_dashboard_redirect(request):
+    return redirect("/dashboard/")
+
+
+def admin_reports_redirect(request):
+    return redirect("/dashboard/reports/")
+
+
 # ── Admin management views ────────────────────────────────────────────────────
 
 @role_required("ADMIN")
