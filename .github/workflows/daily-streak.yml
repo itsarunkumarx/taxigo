@@ -1,9 +1,9 @@
-name: Automated Quality Check & Daily 5x Commit Streak Maintainer
+name: Automated Daily 30x Commit Streak Maintainer
 
 on:
   schedule:
-    # Runs 5 times every day (every ~4.8 hours: 00:00, 05:00, 10:00, 15:00, 20:00 UTC)
-    - cron: '0 0,5,10,15,20 * * *'
+    # Runs ~32 times every day (every 45 minutes across 24 hours)
+    - cron: '*/45 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -26,9 +26,10 @@ jobs:
 
       - name: Update Daily Streak File & Commit Verified Changes
         run: |
-          echo "Automated daily contribution streak update: $(date -u)" > STREAK.md
+          echo "Automated daily 30x contribution streak update: $(date -u)" > STREAK.md
           git config --global user.name "itsarunkumarx"
           git config --global user.email "arunkumarpalani428@gmail.com"
           git add STREAK.md
-          git diff-index --quiet HEAD || git commit -m "Auto maintain daily contribution streak [skip ci]"
+          git diff-index --quiet HEAD || git commit -m "Auto maintain 30x daily contribution streak [skip ci]"
+          git pull --rebase origin main || true
           git push origin main
