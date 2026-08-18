@@ -1,16 +1,16 @@
-name: Automated Daily Commit Streak Maintainer
+name: Automated Daily Commit Streak & Render Anti-Sleep Keep-Alive
 
 on:
   schedule:
-    # Runs every 20 minutes (3 times every hour = 72 times per day 24/7)
-    - cron: '*/20 * * * *'
+    # Runs every 10 minutes (6 times per hour = 144 times/day) to prevent Render from sleeping
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  quality-check-and-commit:
+  keep-alive-and-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Codebase
@@ -19,6 +19,11 @@ jobs:
           persist-credentials: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Keep Render Free Instance Awake (Anti-Sleep Ping)
+        run: |
+          echo "Pinging live Render website to keep it continuously awake..."
+          curl -sSf -m 30 "https://rovexa-ejr0.onrender.com/healthz" || curl -sSf -m 30 "https://rovexa-ejr0.onrender.com/" || true
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -26,10 +31,10 @@ jobs:
 
       - name: Update Daily Streak File & Commit Verified Changes
         run: |
-          echo "Automated daily contribution streak update: $(date -u)" > STREAK.md
+          echo "Automated 24/7 streak & keep-alive ping: $(date -u)" > STREAK.md
           git config --global user.name "itsarunkumarx"
           git config --global user.email "arunkumarpalani428@gmail.com"
           git add STREAK.md
-          git diff-index --quiet HEAD || git commit -m "Auto maintain daily contribution streak [skip ci]"
+          git diff-index --quiet HEAD || git commit -m "Auto maintain 24/7 streak and keep-alive [skip ci]"
           git pull --rebase origin main || true
           git push origin main
