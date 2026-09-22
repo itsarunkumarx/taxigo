@@ -1,0 +1,19 @@
+name: 24/7 Render Keep-Alive Ping
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render free instance from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keep-Alive Ping to Rovexa Render App
+        run: |
+          echo "Sending keep-alive ping to Render..."
+          curl -s -o /dev/null -w "%{http_code}" https://rovexa.onrender.com/healthz
+          echo ""
+          curl -s -o /dev/null -w "%{http_code}" https://rovexa.onrender.com/ping/
+          echo ""
