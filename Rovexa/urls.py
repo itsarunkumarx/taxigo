@@ -39,20 +39,40 @@ def handler404(request, exception=None):
         status=404, content_type="text/html"
     )
 
-def handler500(request):
-    """Internal Server Error - log traceback for debugging"""
-    import logging
-    import traceback
-    logger = logging.getLogger("django.request")
-    logger.error(f"500 Internal Server Error at {request.path}:\n{traceback.format_exc()}")
-    return HttpResponse(
-        "<h1>500 - Server Error</h1><p>An unexpected error occurred. Please try again later.</p>"
-        "<p><a href='/'>Return to Home</a></p>",
-        status=500, content_type="text/html"
-    )
+def robots_txt(request):
+    content = "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /dashboard/\nSitemap: https://rovexa.onrender.com/sitemap.xml\n"
+    return HttpResponse(content, content_type="text/plain")
+
+def sitemap_xml(request):
+    content = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://rovexa.onrender.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://rovexa.onrender.com/about/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rovexa.onrender.com/contact/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rovexa.onrender.com/booking/add/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>"""
+    return HttpResponse(content, content_type="application/xml")
 
 
 urlpatterns = [
+    path("robots.txt", robots_txt),
+    path("sitemap.xml", sitemap_xml),
     path("healthz", healthcheck, name="healthcheck"),
     path("healthz/", healthcheck),
     path("ping/", healthcheck, name="ping"),
