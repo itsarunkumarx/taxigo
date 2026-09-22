@@ -70,7 +70,12 @@ def sitemap_xml(request):
     return HttpResponse(content, content_type="application/xml")
 
 
+def google_verification(request):
+    return HttpResponse("google-site-verification: googlee0d51be61ec8057d.html", content_type="text/html")
+
+
 urlpatterns = [
+    path("googlee0d51be61ec8057d.html", google_verification),
     path("robots.txt", robots_txt),
     path("sitemap.xml", sitemap_xml),
     path("healthz", healthcheck, name="healthcheck"),
